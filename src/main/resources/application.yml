@@ -1,23 +1,20 @@
 server:
-  port: 9090
+  port: 8080
 
 spring:
   jpa:
     show-sql: false
     generate-ddl: false
-    hibernate:
-      ddl-auto: none
-      use-new-id-generator-mappings: false
 
   datasource:
-    url: jdbc:mysql:thin://localhost:3306/IdentityAccountMapper
+    url: jdbc:mysql:thin://operations-mysql:3306/IdentityAccountMapper
     username: root
     password: mysql
     driver-class-name: org.drizzle.jdbc.DrizzleDriver
 
 logging:
   level:
-    ROOT: INFO
+    ROOT: DEBUG
 
 async:
   core-pool-size: 10

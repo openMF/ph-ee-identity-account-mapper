@@ -12,17 +12,16 @@ import java.util.List;
 
 @Service
 public class SendCallbackService {
-    public void sendCallback(List<ErrorTracking> errorTrackingList, String callbackURL, String requestId){
-        CallbackRequestDTO callbackRequestDTO = createRequestBody(errorTrackingList,requestId);
+    public void sendCallback(String body, String callbackURL){
         String response = RestAssured.given()
                 .baseUri(callbackURL)
-                .body(callbackRequestDTO)
+                .body(body)
                 .when()
                 .post()
                 .andReturn().asString();
     }
 
-    private CallbackRequestDTO createRequestBody(List<ErrorTracking> errorTrackingList, String requestId){
+    public CallbackRequestDTO createRequestBody(List<ErrorTracking> errorTrackingList, String requestId){
         List<FailedCaseDTO> failedCaseList = new ArrayList<>();
         int numberFailedCases = 0;
         for(ErrorTracking error: errorTrackingList){

@@ -1,37 +1,17 @@
 package org.mifos.identityaccountmapper.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FailedCaseDTO {
     private String payeeIdentity ;
     private String paymentModality;
     private String failureReason;
 
-    public FailedCaseDTO(String payeeIdentity, String paymentModality, String failureReason) {
-        this.payeeIdentity = payeeIdentity;
-        this.paymentModality = paymentModality;
-        this.failureReason = failureReason;
-    }
-
-    public String getPayeeIdentity() {
-        return payeeIdentity;
-    }
-
-    public void setPayeeIdentity(String payeeIdentity) {
-        this.payeeIdentity = payeeIdentity;
-    }
-
-    public String getPaymentModality() {
-        return paymentModality;
-    }
-
-    public void setPaymentModality(String paymentModality) {
-        this.paymentModality = paymentModality;
-    }
-
-    public String getFailureReason() {
-        return failureReason;
-    }
-
-    public void setFailureReason(String failureReason) {
-        this.failureReason = failureReason;
-    }
 }

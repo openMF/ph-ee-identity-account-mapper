@@ -10,8 +10,8 @@ public class UniqueIDGenerator {
     public static String generateUniqueNumber(int length) {
         Random rand = new Random();
         long timestamp = System.currentTimeMillis();
-        int randomInt = rand.nextInt(100000000);
-        String uniqueNumber = timestamp + "" + randomInt;
+        long randomLong = rand.nextLong(100000000);
+        String uniqueNumber = timestamp + "" + randomLong;
         return uniqueNumber.substring(0, length);
     }
     public static String generateUniqueID(int length) {

@@ -17,8 +17,12 @@ id                      BIGINT(20) PRIMARY KEY NOT NULL AUTO_INCREMENT,
 CREATE TABLE error_tracking (
     id                      BIGINT(20) PRIMARY KEY NOT NULL AUTO_INCREMENT,
   request_id               VARCHAR(200)                                     NOT NULL,
-  payee_identity        VARCHAR(200)                           NOT NULL,
+  payee_identity        VARCHAR(200)                                        NOT NULL,
   modality                BIGINT(20)                                      NULL DEFAULT NULL,
   error_description     VARCHAR(200)                                       NOT NULL
-
 );
+CREATE INDEX idx_payee_identity ON identity_details (payee_identity, master_id);
+
+CREATE INDEX idx_master_id ON identity_details (payee_identity, master_id);
+
+CREATE INDEX idx_master_id ON payment_modality_details (master_id);

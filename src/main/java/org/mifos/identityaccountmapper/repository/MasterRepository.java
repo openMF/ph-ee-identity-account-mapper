@@ -5,12 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface MasterRepository extends JpaRepository<IdentityDetails, Long> ,JpaSpecificationExecutor<IdentityDetails> {
 
-    IdentityDetails findByMasterId(String masterId);
+    Optional<IdentityDetails> findByMasterId(String masterId);
 
-    IdentityDetails findByPayeeIdentity(String functionalId);
+    Optional<IdentityDetails> findByPayeeIdentity(String functionalId);
 
     Boolean existsByPayeeIdentity(String functionalId);
 }

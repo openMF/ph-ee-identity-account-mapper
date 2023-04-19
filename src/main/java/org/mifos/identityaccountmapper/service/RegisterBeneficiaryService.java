@@ -1,6 +1,9 @@
 package org.mifos.identityaccountmapper.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
+import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
 import org.mifos.identityaccountmapper.data.RequestDTO;
 import org.mifos.identityaccountmapper.domain.ErrorTracking;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
@@ -29,39 +32,47 @@ public class RegisterBeneficiaryService {
     private final ErrorTrackingRepository errorTrackingRepository;
     private final PaymentModalityRepository paymentModalityRepository;
     private final SendCallbackService sendCallbackService;
+    private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(RegisterBeneficiaryService.class);
 
     @Autowired
     public RegisterBeneficiaryService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
-                                       PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService){
+                                       PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService,
+                                      ObjectMapper objectMapper){
         this.masterRepository = masterRepository;
         this.errorTrackingRepository = errorTrackingRepository;
         this.paymentModalityRepository = paymentModalityRepository;
         this.sendCallbackService = sendCallbackService;
+        this.objectMapper = objectMapper;
     }
 
 
     @Async("asyncExecutor")
-    public void registerBeneficiary(String callbackURL, RequestDTO requestBody) throws InterruptedException {
+    public void registerBeneficiary(String callbackURL, RequestDTO requestBody) {
         List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
         List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
         validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList);
-        sendCallbackService.sendCallback(errorTrackingsList, callbackURL,requestBody.getRequestID());
+        CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList,requestBody.getRequestID());
+
+        try {
+            sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     @Transactional
     private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request, List<ErrorTracking> errorTrackingList){
         for(BeneficiaryDTO beneficiary: beneficiariesList){
             String requestID  = request.getRequestID();
-            Boolean beneficiaryexists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
+            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
             try {
-                if (!beneficiaryexists) {
+                if (!beneficiaryExists) {
                     String masterId = UniqueIDGenerator.generateUniqueNumber(20);
                     IdentityDetails identityDetails = new IdentityDetails(masterId, request.getSourceBBID(), LocalDateTime.now(), beneficiary.getPayeeIdentity());
                     this.masterRepository.save(identityDetails);
-                    String destinationAccount = beneficiary.getAccountNumber() != null ? "" : beneficiary.getAccountNumber();
-                    PaymentModalityDetails paymentModalityDetails = new PaymentModalityDetails(masterId, destinationAccount, beneficiary.getPaymentModality(), "");
+                    PaymentModalityDetails paymentModalityDetails = new PaymentModalityDetails(masterId, beneficiary.getFinancialAddress(), beneficiary.getPaymentModality(), beneficiary.getBankingInstitutionCode());
                     this.paymentModalityRepository.save(paymentModalityDetails);
                 }
             }catch (RuntimeException e) {

@@ -14,7 +14,7 @@ import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
-@ComponentScan(basePackages = "org.mifos.pheeidentityaccountmapper")
+@ComponentScan(basePackages = "org.mifos.identityaccountmapper")
 public abstract class AbstractApplicationConfiguration {
     @Value("${async.core-pool-size}")
     public Integer corePoolSize;

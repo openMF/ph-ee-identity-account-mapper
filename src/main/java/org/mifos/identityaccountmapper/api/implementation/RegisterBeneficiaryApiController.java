@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.ExecutionException;
 
+import static org.mifos.identityaccountmapper.util.AccountMapperEnum.*;
+
 @RestController
 public class RegisterBeneficiaryApiController implements RegisterBeneficiaryApi {
     @Autowired
@@ -20,9 +22,9 @@ public class RegisterBeneficiaryApiController implements RegisterBeneficiaryApi 
         try {
             registerBeneficiaryService.registerBeneficiary(callbackURL, requestBody);
         }catch (Exception e){
-            return new ResponseDTO("10", "Request not acknowledged by Pay-BB", requestBody.getRequestID());
+            return new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestBody.getRequestID());
 
         }
-        return new ResponseDTO("20", "Request successfully received by Pay-BB", requestBody.getRequestID());
+        return new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestBody.getRequestID());
     }
 }
