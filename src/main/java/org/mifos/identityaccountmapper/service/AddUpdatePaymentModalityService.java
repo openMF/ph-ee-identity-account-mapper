@@ -86,21 +86,20 @@ public class AddUpdatePaymentModalityService {
             if(beneficiaryExists){
                 PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
 
-                paymentModality.setModality(beneficiary.getPaymentModality());
-                if (beneficiary.getFinancialAddress() != null) {
-                    paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
+                    paymentModality.setModality(beneficiary.getPaymentModality());
+                    if (beneficiary.getFinancialAddress() != null) {
+                        paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
+                    }
+                    if (beneficiary.getBankingInstitutionCode() != null) {
+                        paymentModality.setInstitutionCode(beneficiary.getBankingInstitutionCode());
+                    }
+                    paymentModalityRepository.save(paymentModality);
                 }
-                if (beneficiary.getBankingInstitutionCode() != null) {
-                    paymentModality.setInstitutionCode(beneficiary.getBankingInstitutionCode());
-                }
-                paymentModalityRepository.save(paymentModality);
+            }catch (Exception e){
+                saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
+                logger.error(e.getMessage());
             }
-        }catch (Exception e){
-            saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
-            logger.error(e.getMessage());
         }
-    }
-
 
     private void validateAndAddPaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList){
         beneficiaryList.stream().forEach(beneficiary ->{
@@ -117,22 +116,22 @@ public class AddUpdatePaymentModalityService {
             if(beneficiaryExists){
                 PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
 
-                if(!paymentModalityExist(paymentModality, requestID, beneficiary, errorTrackingList)){
-                    paymentModality.setModality(beneficiary.getPaymentModality());
-                    if (beneficiary.getFinancialAddress() != null) {
-                        paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
+                    if(!paymentModalityExist(paymentModality, requestID, beneficiary, errorTrackingList)){
+                        paymentModality.setModality(beneficiary.getPaymentModality());
+                        if (beneficiary.getFinancialAddress() != null) {
+                            paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
+                        }
+                        if (beneficiary.getBankingInstitutionCode() != null) {
+                            paymentModality.setInstitutionCode(beneficiary.getBankingInstitutionCode());
+                        }
+                        paymentModalityRepository.save(paymentModality);
                     }
-                    if (beneficiary.getBankingInstitutionCode() != null) {
-                        paymentModality.setInstitutionCode(beneficiary.getBankingInstitutionCode());
-                    }
-                    paymentModalityRepository.save(paymentModality);
                 }
+            }catch (Exception e){
+                saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
+                logger.error(e.getMessage());
             }
-        }catch (Exception e){
-            saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
-            logger.error(e.getMessage());
         }
-    }
 
     private PaymentModalityDetails fetchPaymentModalityDetails(BeneficiaryDTO beneficiary){
         IdentityDetails identityDetails = null;
