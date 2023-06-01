@@ -10,5 +10,5 @@ import java.util.concurrent.ExecutionException;
 public interface AccountLookupApi {
     @GetMapping("/identityAccountMapper/accountLookup")
     ResponseDTO accountLookup(@RequestHeader(value="X-CallbackURL") String callbackURL, @RequestParam(value = "payeeIdentity") String payeeIdentity,
-                              @RequestParam(value = "requestId") String requestId) throws ExecutionException, InterruptedException;
+                              @RequestParam(value = "paymentModality") String paymentModality) throws ExecutionException, InterruptedException;
 }

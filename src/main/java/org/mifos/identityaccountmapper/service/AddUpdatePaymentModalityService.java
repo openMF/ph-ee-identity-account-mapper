@@ -15,9 +15,11 @@ import org.mifos.identityaccountmapper.repository.PaymentModalityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,14 +71,53 @@ public class AddUpdatePaymentModalityService {
         }
     }
 
-    private void validateAndUpdatePaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList){
-        for(BeneficiaryDTO beneficiary: beneficiaryList){
+    private void validateAndUpdatePaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList) {
+        beneficiaryList.stream().forEach(beneficiary -> {
+            String requestID = request.getRequestID();
+            Boolean beneficiaryExists = validateBeneficiary(beneficiary, requestID, errorTrackingList);
+            updateModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity());
+        });
+    }
+
+    @Transactional
+    @CacheEvict(value = "accountLookupCache",key = "#payeeIdentity")
+    public void updateModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList, String requestID, String payeeIdentity){
+        try {
+            if(beneficiaryExists){
+                PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
+
+                paymentModality.setModality(beneficiary.getPaymentModality());
+                if (beneficiary.getFinancialAddress() != null) {
+                    paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
+                }
+                if (beneficiary.getBankingInstitutionCode() != null) {
+                    paymentModality.setInstitutionCode(beneficiary.getBankingInstitutionCode());
+                }
+                paymentModalityRepository.save(paymentModality);
+            }
+        }catch (Exception e){
+            saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
+            logger.error(e.getMessage());
+        }
+    }
+
+
+    private void validateAndAddPaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList){
+        beneficiaryList.stream().forEach(beneficiary ->{
             String requestID  = request.getRequestID();
             Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
-            try {
-                if(beneficiaryExists){
-                    PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
+            addModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity());
+        });
+    }
 
+    @Transactional
+    @CacheEvict(value = "accountLookupCache",key = "#payeeIdentity")
+    public void addModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList, String requestID, String payeeIdentity){
+        try {
+            if(beneficiaryExists){
+                PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
+
+                if(!paymentModalityExist(paymentModality, requestID, beneficiary, errorTrackingList)){
                     paymentModality.setModality(beneficiary.getPaymentModality());
                     if (beneficiary.getFinancialAddress() != null) {
                         paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
@@ -86,38 +127,13 @@ public class AddUpdatePaymentModalityService {
                     }
                     paymentModalityRepository.save(paymentModality);
                 }
-            }catch (Exception e){
-                saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
-                logger.error(e.getMessage());
             }
+        }catch (Exception e){
+            saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
+            logger.error(e.getMessage());
         }
     }
 
-    private void validateAndAddPaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList){
-        for(BeneficiaryDTO beneficiary: beneficiaryList){
-            String requestID  = request.getRequestID();
-            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
-            try {
-                if(beneficiaryExists){
-                    PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
-
-                    if(!paymentModalityExist(paymentModality, requestID, beneficiary, errorTrackingList)){
-                        paymentModality.setModality(beneficiary.getPaymentModality());
-                        if (beneficiary.getFinancialAddress() != null) {
-                            paymentModality.setDestinationAccount(beneficiary.getFinancialAddress());
-                        }
-                        if (beneficiary.getBankingInstitutionCode() != null) {
-                            paymentModality.setInstitutionCode(beneficiary.getBankingInstitutionCode());
-                        }
-                        paymentModalityRepository.save(paymentModality);
-                    }
-                }
-            }catch (Exception e){
-                saveError(requestID, beneficiary, e.getMessage(), errorTrackingList);
-                logger.error(e.getMessage());
-            }
-        }
-    }
     private PaymentModalityDetails fetchPaymentModalityDetails(BeneficiaryDTO beneficiary){
         IdentityDetails identityDetails = null;
         try {
@@ -125,9 +141,9 @@ public class AddUpdatePaymentModalityService {
         } catch (PayeeIdentityException e) {
             logger.error(e.getMessage());
         }
-        return paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get();
+        return paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
     }
-
+    @Transactional
     private Boolean validateBeneficiary(BeneficiaryDTO beneficiary,String requestID, List<ErrorTracking> errorTrackingList){
         Boolean beneficiaryExists = masterRepository.existsByPayeeIdentity(beneficiary.getPayeeIdentity());
         if(!beneficiaryExists){
@@ -135,6 +151,7 @@ public class AddUpdatePaymentModalityService {
         }
         return beneficiaryExists;
     }
+    @Transactional
     private Boolean paymentModalityExist(PaymentModalityDetails paymentModality,String requestID, BeneficiaryDTO beneficiary,List<ErrorTracking> errorTrackingList){
         if(paymentModality.getModality() != null){
             saveError(requestID, beneficiary, "Beneficiary already registered with other Modality", errorTrackingList);
@@ -142,7 +159,7 @@ public class AddUpdatePaymentModalityService {
         }
         return false;
     }
-
+    @Transactional
     private void saveError(String requestID, BeneficiaryDTO beneficiary, String errorDescription, List<ErrorTracking> errorTrackingList){
         try {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(), errorDescription);

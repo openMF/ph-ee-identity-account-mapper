@@ -14,13 +14,13 @@ public class AccountLookupApiController implements AccountLookupApi {
     AccountLookupService accountLookupService;
 
     @Override
-    public ResponseDTO accountLookup(String callbackURL, String payeeIdentity, String requestId){
+    public ResponseDTO accountLookup(String callbackURL, String payeeIdentity, String paymentModality){
         try {
             accountLookupService.accountLookup(callbackURL,payeeIdentity);
         } catch (Exception e) {
-            return new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
+            return new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), null);
 
         }
-        return new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestId);
+        return new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), null);
     }
 }
