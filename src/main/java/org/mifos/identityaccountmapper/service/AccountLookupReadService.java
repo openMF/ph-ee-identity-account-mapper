@@ -6,7 +6,6 @@ import org.mifos.identityaccountmapper.data.AccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.PaymentModalityDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
 import org.mifos.identityaccountmapper.domain.PaymentModalityDetails;
-import org.mifos.identityaccountmapper.exception.PayeeIdentityException;
 import org.mifos.identityaccountmapper.repository.ErrorTrackingRepository;
 import org.mifos.identityaccountmapper.repository.MasterRepository;
 import org.mifos.identityaccountmapper.repository.PaymentModalityRepository;
@@ -40,7 +39,7 @@ public class AccountLookupReadService {
         this.objectMapper = objectMapper;
     }
     @Cacheable(value = "accountLookupCache",key = "#payeeIdentity")
-    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL){
+    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId){
         IdentityDetails identityDetails = null;
         List<PaymentModalityDetails> paymentModalityDetails = new ArrayList<>();
         try{
@@ -56,14 +55,14 @@ public class AccountLookupReadService {
                 throw new RuntimeException(ex);
             }
         }
-        return createResponseDTO(paymentModalityDetails,identityDetails);
+        return createResponseDTO(paymentModalityDetails, identityDetails, requestId);
     }
 
-    private AccountLookupResponseDTO createResponseDTO(List<PaymentModalityDetails> paymentModalityDetailsList, IdentityDetails identityDetails){
+    private AccountLookupResponseDTO createResponseDTO(List<PaymentModalityDetails> paymentModalityDetailsList, IdentityDetails identityDetails, String requestId){
         List<PaymentModalityDTO> paymentModalityList = new ArrayList<>();
         for(PaymentModalityDetails paymentModalityDetails: paymentModalityDetailsList){
             paymentModalityList.add(new PaymentModalityDTO(paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
         }
-        return new AccountLookupResponseDTO(identityDetails.getPayeeIdentity(),paymentModalityList);
+        return new AccountLookupResponseDTO(requestId, identityDetails.getPayeeIdentity(),paymentModalityList);
     }
 }

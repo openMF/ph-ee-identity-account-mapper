@@ -13,12 +13,11 @@ import java.util.List;
 @Service
 public class SendCallbackService {
     public void sendCallback(String body, String callbackURL){
-        String response = RestAssured.given()
+         RestAssured.given()
                 .baseUri(callbackURL)
                 .body(body)
                 .when()
-                .post()
-                .andReturn().asString();
+                .post();
     }
 
     public CallbackRequestDTO createRequestBody(List<ErrorTracking> errorTrackingList, String requestId){
