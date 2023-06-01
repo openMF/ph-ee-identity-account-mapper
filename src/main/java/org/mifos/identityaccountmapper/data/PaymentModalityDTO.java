@@ -5,16 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+import java.io.Serializable;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CallbackRequestDTO  {
-    private String requestID;
-    private String registerRequestID;
-    private int numberFailedCases;
-    private List<FailedCaseDTO> failedCases;
-
+public class PaymentModalityDTO implements Serializable {
+    private String paymentModality;
+    private String financialAddress;
+    private String bankingInstitutionCode;
 }

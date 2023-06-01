@@ -19,10 +19,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -64,7 +62,7 @@ public class RegisterBeneficiaryService {
 
     @Transactional
     private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request, List<ErrorTracking> errorTrackingList){
-        for(BeneficiaryDTO beneficiary: beneficiariesList){
+        beneficiariesList.stream().forEach(beneficiary ->{
             String requestID  = request.getRequestID();
             Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
             try {
@@ -87,7 +85,7 @@ public class RegisterBeneficiaryService {
             }catch(Exception e){
                 logger.error(e.getMessage());
             }
-        }
+        });
     }
 
     @Transactional

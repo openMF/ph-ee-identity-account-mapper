@@ -22,35 +22,28 @@ public class AccountLookupService {
     private final PaymentModalityRepository paymentModalityRepository;
     private final SendCallbackService sendCallbackService;
     private final ObjectMapper objectMapper;
+    private final AccountLookupReadService accountLookupReadService;
     private static final Logger logger = LoggerFactory.getLogger(AccountLookupService.class);
 
     @Autowired
     public AccountLookupService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
                                            PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService,
-                                ObjectMapper objectMapper){
+                                ObjectMapper objectMapper, AccountLookupReadService accountLookupReadService){
         this.masterRepository = masterRepository;
         this.errorTrackingRepository = errorTrackingRepository;
         this.paymentModalityRepository = paymentModalityRepository;
         this.sendCallbackService = sendCallbackService;
         this.objectMapper = objectMapper;
+        this.accountLookupReadService = accountLookupReadService;
     }
     @Async("asyncExecutor")
     public void accountLookup(String callbackURL,String payeeIdentity){
-        try {
-            IdentityDetails identityDetails = masterRepository.findByPayeeIdentity(payeeIdentity).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
-            PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get();
-            sendAccountLookupCallback(new BeneficiaryDTO(identityDetails.getPayeeIdentity(),paymentModalityDetails.getModality(),paymentModalityDetails.getDestinationAccount(),paymentModalityDetails.getInstitutionCode()),callbackURL );
-        }catch (RuntimeException e){
-            logger.error(e.getMessage());
-        }
-    }
-
-    private void sendAccountLookupCallback(BeneficiaryDTO accountDetails, String callbackURL){
 
         try {
-            sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountDetails), callbackURL);
+            sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountLookupReadService.lookup(payeeIdentity, callbackURL)), callbackURL);
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage());
         }
+
     }
 }
