@@ -31,3 +31,27 @@ async:
   core-pool-size: 10
   max-pool-size: 10
   queue-capacity: 100
+
+gsma-connector:
+  contactpoint: "https://amsmifos.sandbox.mifos.io"
+  endpoint:
+    account-status: "/ams/accounts/identifierType/identifierId/status"
+
+mojaloop-connector:
+  contactpoint: "http://account-lookup-service.sandbox.fynarfin.io"
+  endpoint:
+    get-parties: "/parties/"
+    callback-register: "/participants/fsp/endpoints"
+
+account_validation_enabled : false
+account_validator_connector: "gsma"
+callback_enabled: true
+zeebe:
+  client:
+    max-execution-threads: 1000
+    evenly-allocated-max-jobs: 1000
+  #    max-execution-threads: 100
+  #    number-of-workers: 15
+  #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
+  broker:
+    contactpoint: "zeebe-zeebe-gateway:26500"

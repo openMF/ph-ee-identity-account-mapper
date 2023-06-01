@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountLookupResponseDTO implements Serializable {
+    private String requestId;
     private String payeeIdentity;
     private List<PaymentModalityDTO> paymentModalityList;
 }

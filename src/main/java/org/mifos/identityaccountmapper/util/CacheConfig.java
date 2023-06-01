@@ -15,15 +15,15 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class CacheConfig  extends CachingConfigurerSupport {
     @Value("${spring.cache.time_to_live}")
-    private int ttl;
+    private Integer ttl;
     @Value("${spring.cache.time_to_idle}")
-    private int tti;
+    private Integer tti;
     @Value("${spring.cache.max_entries_heap}")
-    private int maxEntriesHeap;
+    private Integer maxEntriesHeap;
     @Value("${spring.cache.max_byte_off_heap}")
-    private long maxByteOffHeap;
+    private Long maxByteOffHeap;
     @Value("${spring.cache.max_byte_disk}")
-    private long maxByteDisk;
+    private Long maxByteDisk;
     @Bean
     public CacheManager ehCacheManager() {
         CacheConfiguration cacheConfig = new CacheConfiguration();
