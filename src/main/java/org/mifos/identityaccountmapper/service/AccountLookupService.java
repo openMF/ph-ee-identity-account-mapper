@@ -57,12 +57,8 @@ public class AccountLookupService {
         this.accountLookupReadService = accountLookupReadService;
     }
     @Async("asyncExecutor")
-    public void accountLookup(String callbackURL,String payeeIdentity, String paymentModality, String requestId, String sourceBBId){
+    public void accountLookup(String callbackURL,String payeeIdentity, String paymentModality, String requestId){
         IdentityDetails identityDetails = masterRepository.findByPayeeIdentity(payeeIdentity).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
-        if(!identityDetails.getSourceId().matches(sourceBBId)){
-            sendCallbackService.sendCallback("SourceBBId is not mapped to the Payee Identity provided in the request.", callbackURL);
-            return;
-        }
         PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
         if(!paymentModalityCodes.contains(paymentModality)){
             paymentModality = getValueByKey(paymentModality);
