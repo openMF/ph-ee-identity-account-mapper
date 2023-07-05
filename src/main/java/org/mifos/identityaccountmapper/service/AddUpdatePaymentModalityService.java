@@ -44,20 +44,20 @@ public class AddUpdatePaymentModalityService {
     }
 
     @Async("asyncExecutor")
-    public void addPaymentModality(String callbackURL, RequestDTO requestBody){
+    public void addPaymentModality(String callbackURL, RequestDTO requestBody, String registeringInstitutionId){
         List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
         List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
-        validateAndAddPaymentModality(beneficiaryList, requestBody, errorTrackingsList);
+        validateAndAddPaymentModality(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
         sendCallback(errorTrackingsList,requestBody.getRequestID(), callbackURL);
     }
 
     @Async("asyncExecutor")
-    public void  updatePaymentModality(String callbackURL,RequestDTO requestBody){
+    public void  updatePaymentModality(String callbackURL,RequestDTO requestBody, String registeringInstitutionId){
         List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
         List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
-        validateAndUpdatePaymentModality(beneficiaryList, requestBody, errorTrackingsList);
+        validateAndUpdatePaymentModality(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
         sendCallback(errorTrackingsList,requestBody.getRequestID(), callbackURL);
     }
 
@@ -71,10 +71,10 @@ public class AddUpdatePaymentModalityService {
         }
     }
 
-    private void validateAndUpdatePaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList) {
+    private void validateAndUpdatePaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList, String registeringInstitutionId) {
         beneficiaryList.stream().forEach(beneficiary -> {
             String requestID = request.getRequestID();
-            Boolean beneficiaryExists = validateBeneficiary(beneficiary, requestID, errorTrackingList);
+            Boolean beneficiaryExists = validateBeneficiary(beneficiary, requestID, errorTrackingList,registeringInstitutionId);
             updateModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity());
         });
     }
@@ -101,10 +101,10 @@ public class AddUpdatePaymentModalityService {
             }
         }
 
-    private void validateAndAddPaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList){
+    private void validateAndAddPaymentModality(List<BeneficiaryDTO> beneficiaryList, RequestDTO request, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
         beneficiaryList.stream().forEach(beneficiary ->{
             String requestID  = request.getRequestID();
-            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
+            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList, registeringInstitutionId);
             addModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity());
         });
     }
@@ -143,10 +143,16 @@ public class AddUpdatePaymentModalityService {
         return paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
     }
     @Transactional
-    private Boolean validateBeneficiary(BeneficiaryDTO beneficiary,String requestID, List<ErrorTracking> errorTrackingList){
+    private Boolean validateBeneficiary(BeneficiaryDTO beneficiary,String requestID, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
         Boolean beneficiaryExists = masterRepository.existsByPayeeIdentity(beneficiary.getPayeeIdentity());
         if(!beneficiaryExists){
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
+        }else {
+            IdentityDetails identityDetails = masterRepository.findByPayeeIdentity(beneficiary.getPayeeIdentity()).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
+            if(!identityDetails.getSourceId().equals(registeringInstitutionId)){
+                saveError(requestID, beneficiary, "Registering Institution Id Mismatch", errorTrackingList);
+                return false;
+            }
         }
         return beneficiaryExists;
     }
