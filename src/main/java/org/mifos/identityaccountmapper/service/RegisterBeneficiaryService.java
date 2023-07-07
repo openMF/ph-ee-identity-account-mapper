@@ -46,11 +46,11 @@ public class RegisterBeneficiaryService {
 
 
     @Async("asyncExecutor")
-    public void registerBeneficiary(String callbackURL, RequestDTO requestBody) {
+    public void registerBeneficiary(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
         List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
         List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
-        validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList);
+        validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
         CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList,requestBody.getRequestID());
 
         try {
@@ -61,14 +61,14 @@ public class RegisterBeneficiaryService {
     }
 
     @Transactional
-    private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request, List<ErrorTracking> errorTrackingList){
+    private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
         beneficiariesList.stream().forEach(beneficiary ->{
             String requestID  = request.getRequestID();
             Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
             try {
                 if (!beneficiaryExists) {
                     String masterId = UniqueIDGenerator.generateUniqueNumber(20);
-                    IdentityDetails identityDetails = new IdentityDetails(masterId, request.getSourceBBID(), LocalDateTime.now(), beneficiary.getPayeeIdentity());
+                    IdentityDetails identityDetails = new IdentityDetails(masterId, registeringInstitutionId, LocalDateTime.now(), beneficiary.getPayeeIdentity());
                     this.masterRepository.save(identityDetails);
                     PaymentModalityDetails paymentModalityDetails = new PaymentModalityDetails(masterId, beneficiary.getFinancialAddress(), beneficiary.getPaymentModality(), beneficiary.getBankingInstitutionCode());
                     this.paymentModalityRepository.save(paymentModalityDetails);

@@ -6,6 +6,8 @@ import org.mifos.identityaccountmapper.api.definition.UpdatePaymentModalityApi;
 import org.mifos.identityaccountmapper.data.ResponseDTO;
 import org.mifos.identityaccountmapper.service.AddUpdatePaymentModalityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.ExecutionException;
@@ -17,13 +19,14 @@ public class UpdatePaymentModalityApiController implements UpdatePaymentModality
     @Autowired
     AddUpdatePaymentModalityService addUpdatePaymentModalityService;
     @Override
-    public ResponseDTO updatePaymentModality(String callbackURL, RequestDTO requestBody) throws ExecutionException, InterruptedException, JsonProcessingException {
+    public ResponseEntity<ResponseDTO> updatePaymentModality(String callbackURL, String registeringInstitutionId, RequestDTO requestBody) throws ExecutionException, InterruptedException, JsonProcessingException {
         try {
-            addUpdatePaymentModalityService.updatePaymentModality(callbackURL, requestBody);
+            addUpdatePaymentModalityService.updatePaymentModality(callbackURL, requestBody, registeringInstitutionId);
         } catch (Exception e) {
-            return new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestBody.getRequestID());
-
+            ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestBody.getRequestID());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
         }
-        return new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestBody.getRequestID());
+        ResponseDTO responseDTO = new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestBody.getRequestID());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
     }
 }

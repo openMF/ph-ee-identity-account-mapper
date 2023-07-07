@@ -17,7 +17,7 @@ public class SendCallbackService {
                 .baseUri(callbackURL)
                 .body(body)
                 .when()
-                .post();
+                .put();
     }
 
     public CallbackRequestDTO createRequestBody(List<ErrorTracking> errorTrackingList, String requestId){
