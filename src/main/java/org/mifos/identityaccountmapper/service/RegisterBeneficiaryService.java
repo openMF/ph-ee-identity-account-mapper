@@ -90,7 +90,7 @@ public class RegisterBeneficiaryService {
 
     @Transactional
     private Boolean validateBeneficiary(BeneficiaryDTO beneficiary, String requestID, List<ErrorTracking> errorTrackingList){
-        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentity(beneficiary.getPayeeIdentity());
+        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(),"");
         try{
             if(beneficiaryExists){
                 ErrorTracking  errorTracking= new ErrorTracking(requestID,beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),"Beneficiary already registered");

@@ -12,8 +12,8 @@ public class IdentityDetails {
     private Long id;
     @Column(name = "master_id")
     private String masterId ;
-    @Column(name = "source_bb_id", nullable = false)
-    private String sourceId ;
+    @Column(name = "registering_institution_id", nullable = false)
+    private String registeringInstitutionId ;
     @Column(name = "created_on", nullable = false)
     private LocalDateTime createdOn ;
     @Column(name = "payee_identity", nullable = false)
@@ -22,9 +22,9 @@ public class IdentityDetails {
     public IdentityDetails() {
     }
 
-    public IdentityDetails(String masterId, String sourceId, LocalDateTime createdOn, String payeeIdentity) {
+    public IdentityDetails(String masterId, String registeringInstitutionId, LocalDateTime createdOn, String payeeIdentity) {
         this.masterId = masterId;
-        this.sourceId = sourceId;
+        this.registeringInstitutionId = registeringInstitutionId;
         this.createdOn = createdOn;
         this.payeeIdentity = payeeIdentity;
     }
@@ -37,12 +37,12 @@ public class IdentityDetails {
         this.masterId = masterId;
     }
 
-    public String getSourceId() {
-        return sourceId;
+    public String getRegisteringInstitutionId() {
+        return registeringInstitutionId;
     }
 
-    public void setSourceId(String sourceId) {
-        this.sourceId = sourceId;
+    public void setRegisteringInstitutionId(String registeringInstitutionId) {
+        this.registeringInstitutionId = registeringInstitutionId;
     }
 
     public LocalDateTime getCreatedOn() {

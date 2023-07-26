@@ -27,10 +27,11 @@ public class AccountLookupRoutes extends ErrorHandlerRouteBuilder {
                     String callbackURL = exchange.getProperty("callbackURL",String.class);
                     String payeeIdentity = exchange.getProperty("payeeIdentity",String.class);
                     String transactionId = exchange.getProperty("transactionId", String.class);
+                    String registeringInstitutionId = exchange.getProperty("registeringInstitutionId", String.class);
                     if (isPayeePartyLookupFailed != null && !(boolean) isPayeePartyLookupFailed) {
-                        accountLookupService.sendAccountLookupCallback(callbackURL, true, payeeIdentity, transactionId);
+                        accountLookupService.sendAccountLookupCallback(callbackURL, true, payeeIdentity, transactionId, registeringInstitutionId);
                     }else {
-                        accountLookupService.sendAccountLookupCallback(callbackURL, false, payeeIdentity, transactionId);
+                        accountLookupService.sendAccountLookupCallback(callbackURL, false, payeeIdentity, transactionId, registeringInstitutionId);
                     }
                 });
 

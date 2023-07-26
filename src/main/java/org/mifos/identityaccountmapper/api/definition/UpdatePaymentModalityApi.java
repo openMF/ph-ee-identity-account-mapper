@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutionException;
 
 public interface UpdatePaymentModalityApi {
     @PutMapping("/paymentModality")
-    ResponseEntity<ResponseDTO> updatePaymentModality(@RequestHeader(value="X-CallbackURL") String callbackURL, @RequestHeader(value = "registeringInstitutionId") String registeringInstitutionId,
+    ResponseEntity<ResponseDTO> updatePaymentModality(@RequestHeader(value="X-CallbackURL") String callbackURL, @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId,
                                                       @RequestBody RequestDTO requestBody) throws ExecutionException, InterruptedException, JsonProcessingException;
 
 }
