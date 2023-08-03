@@ -39,12 +39,12 @@ public class AccountLookupReadService {
         this.objectMapper = objectMapper;
     }
     @Cacheable(value = "accountLookupCache",key = "#payeeIdentity")
-    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId){
+    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId, String registeringInstitutionId){
         IdentityDetails identityDetails = null;
         List<PaymentModalityDetails> paymentModalityDetails = new ArrayList<>();
         try{
             identityDetails = masterRepository
-                    .findByPayeeIdentity(payeeIdentity)
+                    .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
                     .orElseThrow(()-> new RuntimeException("Payee Identity does not exist."));
             paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId());
         } catch (Exception e) {

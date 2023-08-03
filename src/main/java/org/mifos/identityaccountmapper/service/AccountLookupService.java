@@ -58,9 +58,9 @@ public class AccountLookupService {
     }
     @Async("asyncExecutor")
     public void accountLookup(String callbackURL,String payeeIdentity, String paymentModality, String requestId, String registeringInstitutionId){
-        IdentityDetails identityDetails = masterRepository.findByPayeeIdentity(payeeIdentity).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
-        if(!identityDetails.getSourceId().matches(registeringInstitutionId)){
-            sendCallbackService.sendCallback("SourceBBId is not mapped to the Payee Identity provided in the request.", callbackURL);
+        IdentityDetails identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
+        if(!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)){
+            sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.", callbackURL);
             return;
         }
         PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
@@ -79,18 +79,18 @@ public class AccountLookupService {
             Boolean accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality),payeeIdentity, callbackURL);
             if(callbackEnabled) {
-                sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId);
+                sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
             }
         }
         else{
-            sendAccountLookupCallback(callbackURL, true, payeeIdentity, requestId);
+            sendAccountLookupCallback(callbackURL, true, payeeIdentity, requestId, registeringInstitutionId);
         }
     }
 
-    public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId){
+    public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId, String registeringInstitutionId){
         try {
             if(accountValidate) {
-                sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId)), callbackURL);
+                sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId, registeringInstitutionId)), callbackURL);
             }else {
                 sendCallbackService.sendCallback("Account Validation Failed", callbackURL);
                 throw AccountValidationException.accountvalidationFailed(payeeIdentity);

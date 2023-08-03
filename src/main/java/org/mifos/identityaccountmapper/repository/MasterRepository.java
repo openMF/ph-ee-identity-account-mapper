@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface MasterRepository extends JpaRepository<IdentityDetails, Long> ,JpaSpecificationExecutor<IdentityDetails> {
 
-    Optional<IdentityDetails> findByMasterId(String masterId);
+    Optional<IdentityDetails> findByMasterIdAndRegisteringInstitutionId(String masterId, String registeringInstitutionId);
 
-    Optional<IdentityDetails> findByPayeeIdentity(String functionalId);
+    Optional<IdentityDetails> findByPayeeIdentityAndRegisteringInstitutionId(String functionalId, String registeringInstitutionId);
 
-    Boolean existsByPayeeIdentity(String functionalId);
+    Boolean existsByPayeeIdentityAndRegisteringInstitutionId(String functionalId, String registeringInstitutionId);
 }

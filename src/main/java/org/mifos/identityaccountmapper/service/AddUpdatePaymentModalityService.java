@@ -75,16 +75,16 @@ public class AddUpdatePaymentModalityService {
         beneficiaryList.stream().forEach(beneficiary -> {
             String requestID = request.getRequestID();
             Boolean beneficiaryExists = validateBeneficiary(beneficiary, requestID, errorTrackingList,registeringInstitutionId);
-            updateModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity());
+            updateModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity(), registeringInstitutionId);
         });
     }
 
     @Transactional
     @CacheEvict(value = "accountLookupCache",key = "#payeeIdentity")
-    public void updateModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList, String requestID, String payeeIdentity){
+    public void updateModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList, String requestID, String payeeIdentity, String registeringInstitutionId){
         try {
             if(beneficiaryExists){
-                PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
+                PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary, registeringInstitutionId);
 
                     paymentModality.setModality(beneficiary.getPaymentModality());
                     if (beneficiary.getFinancialAddress() != null) {
@@ -105,16 +105,16 @@ public class AddUpdatePaymentModalityService {
         beneficiaryList.stream().forEach(beneficiary ->{
             String requestID  = request.getRequestID();
             Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList, registeringInstitutionId);
-            addModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity());
+            addModalityDetails(beneficiary, beneficiaryExists, errorTrackingList, requestID, beneficiary.getPayeeIdentity(), registeringInstitutionId);
         });
     }
 
     @Transactional
     @CacheEvict(value = "accountLookupCache",key = "#payeeIdentity")
-    public void addModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList, String requestID, String payeeIdentity){
+    public void addModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList, String requestID, String payeeIdentity, String registeringInstitutionId){
         try {
             if(beneficiaryExists){
-                PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary);
+                PaymentModalityDetails paymentModality = fetchPaymentModalityDetails(beneficiary, registeringInstitutionId);
 
                     if(!paymentModalityExist(paymentModality, requestID, beneficiary, errorTrackingList)){
                         paymentModality.setModality(beneficiary.getPaymentModality());
@@ -133,10 +133,10 @@ public class AddUpdatePaymentModalityService {
             }
         }
 
-    private PaymentModalityDetails fetchPaymentModalityDetails(BeneficiaryDTO beneficiary){
+    private PaymentModalityDetails fetchPaymentModalityDetails(BeneficiaryDTO beneficiary, String registeringInstitutionId){
         IdentityDetails identityDetails = null;
         try {
-            identityDetails = masterRepository.findByPayeeIdentity(beneficiary.getPayeeIdentity()).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
+            identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
         } catch (PayeeIdentityException e) {
             logger.error(e.getMessage());
         }
@@ -144,12 +144,12 @@ public class AddUpdatePaymentModalityService {
     }
     @Transactional
     private Boolean validateBeneficiary(BeneficiaryDTO beneficiary,String requestID, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
-        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentity(beneficiary.getPayeeIdentity());
+        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId);
         if(!beneficiaryExists){
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
         }else {
-            IdentityDetails identityDetails = masterRepository.findByPayeeIdentity(beneficiary.getPayeeIdentity()).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
-            if(!identityDetails.getSourceId().equals(registeringInstitutionId)){
+            IdentityDetails identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
+            if(!identityDetails.getRegisteringInstitutionId().equals(registeringInstitutionId)){
                 saveError(requestID, beneficiary, "Registering Institution Id Mismatch", errorTrackingList);
                 return false;
             }
