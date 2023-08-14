@@ -120,5 +120,7 @@ workflows:
           context:
             - DOCKER
       - build_and_push_latest_image:
+          requires:
+            - build
           context:
             - DOCKER
