@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BatchAccountLookupResponseDTO {
-    private String requestId;
+    private String requestID;
     private String registeringInstitutionId;
     private List<BeneficiaryDTO> beneficiaryDTOList;
 }

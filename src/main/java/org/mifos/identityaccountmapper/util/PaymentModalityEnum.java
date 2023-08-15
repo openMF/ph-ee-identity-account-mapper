@@ -3,7 +3,9 @@ package org.mifos.identityaccountmapper.util;
 public enum PaymentModalityEnum {
     ACCOUNT_ID("00"),
     MSISDN("01"),
-    VOUCHER("02");
+    VIRTUAL_ADDRESS("02"),
+    WALLET_ID("03"),
+    VOUCHER("04");
     private final String value;
 
     PaymentModalityEnum(String value) {
