@@ -121,6 +121,6 @@ workflows:
             - DOCKER
       - build_and_push_latest_image:
           requires:
-            - build_and_push_tag_image
+            - build
           context:
             - DOCKER
