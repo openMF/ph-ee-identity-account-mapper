@@ -64,7 +64,7 @@ public class RegisterBeneficiaryService {
     private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
         beneficiariesList.stream().forEach(beneficiary ->{
             String requestID  = request.getRequestID();
-            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList);
+            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList, registeringInstitutionId);
             try {
                 if (!beneficiaryExists) {
                     String masterId = UniqueIDGenerator.generateUniqueNumber(20);
@@ -89,8 +89,8 @@ public class RegisterBeneficiaryService {
     }
 
     @Transactional
-    private Boolean validateBeneficiary(BeneficiaryDTO beneficiary, String requestID, List<ErrorTracking> errorTrackingList){
-        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(),"");
+    private Boolean validateBeneficiary(BeneficiaryDTO beneficiary, String requestID, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
+        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(),registeringInstitutionId);
         try{
             if(beneficiaryExists){
                 ErrorTracking  errorTracking= new ErrorTracking(requestID,beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),"Beneficiary already registered");

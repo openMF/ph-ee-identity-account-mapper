@@ -2,6 +2,8 @@ package org.mifos.identityaccountmapper.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mifos.identityaccountmapper.data.BatchAccountLookupResponseDTO;
+import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
 import org.mifos.identityaccountmapper.domain.PaymentModalityDetails;
 import org.mifos.identityaccountmapper.exception.AccountValidationException;
@@ -19,7 +21,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.getKeyByValue;
@@ -55,6 +59,40 @@ public class AccountLookupService {
         this.sendCallbackService = sendCallbackService;
         this.objectMapper = objectMapper;
         this.accountLookupReadService = accountLookupReadService;
+    }
+    @Async("asyncExecutor")
+    public void batchAccountLookup(String callbackURL, String requestId, List<BeneficiaryDTO> beneficiariesList, String registeringInstitutionId ){
+        List<BeneficiaryDTO> accountLookupList = new ArrayList<>();
+        beneficiariesList.stream().forEach(beneficiary ->{
+            if(masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId)) {
+                IdentityDetails identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId).orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
+                PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
+
+
+                if (accountValidationEnabled) {
+                    AccountValidationService accountValidationService = null;
+                    try {
+                        accountValidationService = (AccountValidationService) this.applicationContext.getBean(accountValidatorConnector);
+                    } catch (NoSuchBeanDefinitionException ex) {
+                        // Handle the case when the bean is not found in the application context
+                    }
+                    assert accountValidationService != null;
+                    Boolean accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
+                            paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModalityDetails.getModality()), beneficiary.getPayeeIdentity(), callbackURL);
+                    if(!accountValidate){
+                            return;
+                    }
+                }
+                accountLookupList.add(new BeneficiaryDTO(beneficiary.getPayeeIdentity(), paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
+
+            }
+        });
+        BatchAccountLookupResponseDTO batchAccountLookupResponse = new BatchAccountLookupResponseDTO(requestId, registeringInstitutionId, accountLookupList);
+        try {
+            sendCallbackService.sendCallback(objectMapper.writeValueAsString(batchAccountLookupResponse), callbackURL);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
     @Async("asyncExecutor")
     public void accountLookup(String callbackURL,String payeeIdentity, String paymentModality, String requestId, String registeringInstitutionId){
