@@ -3,7 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '2.5.5'
 	id 'io.spring.dependency-management' version '1.1.0'
 	id 'idea'
-
+	id "org.springdoc.openapi-gradle-plugin" version "1.6.0"
 	id 'eclipse'
 }
 
@@ -58,4 +58,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+openApi {
+	apiDocsUrl.set("http://localhost:8080/v3/api-docs")
+	outputDir.set(file("src/main/java/docs"))
+	outputFileName.set("swagger.yaml")
 }
