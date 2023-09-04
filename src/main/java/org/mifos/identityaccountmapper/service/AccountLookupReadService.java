@@ -39,7 +39,7 @@ public class AccountLookupReadService {
         this.objectMapper = objectMapper;
     }
     @Cacheable(value = "accountLookupCache",key = "#payeeIdentity")
-    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId, String registeringInstitutionId){
+    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId, String registeringInstitutionId, Boolean isValidated){
         IdentityDetails identityDetails = null;
         List<PaymentModalityDetails> paymentModalityDetails = new ArrayList<>();
         try{
@@ -55,14 +55,14 @@ public class AccountLookupReadService {
                 throw new RuntimeException(ex);
             }
         }
-        return createResponseDTO(paymentModalityDetails, identityDetails, requestId);
+        return createResponseDTO(paymentModalityDetails, identityDetails, requestId, isValidated);
     }
 
-    private AccountLookupResponseDTO createResponseDTO(List<PaymentModalityDetails> paymentModalityDetailsList, IdentityDetails identityDetails, String requestId){
+    private AccountLookupResponseDTO createResponseDTO(List<PaymentModalityDetails> paymentModalityDetailsList, IdentityDetails identityDetails, String requestId, Boolean isValidated){
         List<PaymentModalityDTO> paymentModalityList = new ArrayList<>();
         for(PaymentModalityDetails paymentModalityDetails: paymentModalityDetailsList){
             paymentModalityList.add(new PaymentModalityDTO(paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
         }
-        return new AccountLookupResponseDTO(requestId, identityDetails.getPayeeIdentity(),paymentModalityList);
+        return new AccountLookupResponseDTO(requestId, identityDetails.getPayeeIdentity(),paymentModalityList, isValidated);
     }
 }
