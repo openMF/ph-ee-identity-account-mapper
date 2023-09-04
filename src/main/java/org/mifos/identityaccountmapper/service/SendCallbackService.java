@@ -18,16 +18,18 @@ public class SendCallbackService {
     private static final Logger logger = LoggerFactory.getLogger(SendCallbackService.class);
 
     public void sendCallback(String body, String callbackURL){
+        logger.debug(body);
+        logger.debug(callbackURL);
         Response response = RestAssured.given()
                 .baseUri(callbackURL)
                 .body(body)
                 .when()
                 .put();
-        logger.info(callbackURL);
+
         String responseBody = response.getBody().asString();
-        logger.info(responseBody);
+        logger.debug(responseBody);
         int responseCode = response.getStatusCode();
-        logger.info(String.valueOf(responseCode));
+        logger.debug(String.valueOf(responseCode));
     }
 
     public CallbackRequestDTO createRequestBody(List<ErrorTracking> errorTrackingList, String requestId){

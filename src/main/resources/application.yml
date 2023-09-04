@@ -32,8 +32,8 @@ async:
   max-pool-size: 10
   queue-capacity: 100
 
-gsma-connector:
-  contactpoint: "https://amsmifos.sandbox.mifos.io"
+gsma_connector:
+  contactpoint: "https://ams-mifos.sandbox.fynarfin.io"
   endpoint:
     account-status: "/ams/accounts/identifierType/identifierId/status"
 
@@ -45,7 +45,7 @@ mojaloop-connector:
 
 account_validation_enabled : false
 account_validator_connector: "gsma"
-callback_enabled: true
+callback_enabled: false
 zeebe:
   client:
     max-execution-threads: 1000

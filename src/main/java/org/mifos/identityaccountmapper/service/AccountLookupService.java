@@ -105,34 +105,25 @@ public class AccountLookupService {
         if(!paymentModalityCodes.contains(paymentModality)){
             paymentModality = getValueByKey(paymentModality);
         }
+        AccountValidationService accountValidationService = null;
+        try {
+            accountValidationService = (AccountValidationService) this.applicationContext.getBean(accountValidatorConnector);
+        } catch (NoSuchBeanDefinitionException ex) {
+            // Handle the case when the bean is not found in the application context
+        }
+        Boolean accountValidate = null;
+        if(accountValidationService != null) {
+            accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
+                    paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
+        }
 
-        if(accountValidationEnabled) {
-            AccountValidationService accountValidationService = null;
-            try {
-                accountValidationService = (AccountValidationService) this.applicationContext.getBean(accountValidatorConnector);
-            } catch (NoSuchBeanDefinitionException ex) {
-                // Handle the case when the bean is not found in the application context
-            }
-            assert accountValidationService != null;
-            Boolean accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
-                    paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality),payeeIdentity, callbackURL);
-            if(callbackEnabled) {
-                sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
-            }
-        }
-        else{
-            sendAccountLookupCallback(callbackURL, true, payeeIdentity, requestId, registeringInstitutionId);
-        }
+        sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
+
     }
 
     public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId, String registeringInstitutionId){
         try {
-            if(accountValidate) {
-                sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId, registeringInstitutionId)), callbackURL);
-            }else {
-                sendCallbackService.sendCallback("Account Validation Failed", callbackURL);
-                throw AccountValidationException.accountvalidationFailed(payeeIdentity);
-            }
+            sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId, registeringInstitutionId, accountValidate)), callbackURL);
         } catch (JsonProcessingException | RuntimeException e) {
             logger.error(e.getMessage());
         }
