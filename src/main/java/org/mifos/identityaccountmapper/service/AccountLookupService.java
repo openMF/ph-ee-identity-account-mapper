@@ -113,6 +113,9 @@ public class AccountLookupService {
         }
         Boolean accountValidate = null;
         if(accountValidationService != null) {
+            logger.info(paymentModalityDetails.getDestinationAccount());
+            logger.info(fetchPaymentModality(paymentModality));
+
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
         }
