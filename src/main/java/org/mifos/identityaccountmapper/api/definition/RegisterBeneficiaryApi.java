@@ -18,7 +18,7 @@ public interface RegisterBeneficiaryApi {
     @PostMapping("/beneficiary")
 
     ResponseEntity<ResponseDTO> registerBeneficiary(@RequestHeader(value="X-CallbackURL") String callbackURL,
-                                                    @RequestHeader(value = "registeringInstitutionId") String registeringInstitutionId,
+                                                    @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId,
                                                     @RequestBody RequestDTO requestBody) throws ExecutionException, InterruptedException, JsonProcessingException;
 
 }
