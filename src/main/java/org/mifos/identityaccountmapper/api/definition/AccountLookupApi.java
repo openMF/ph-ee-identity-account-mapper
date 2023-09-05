@@ -19,7 +19,7 @@ public interface AccountLookupApi {
                                               @RequestParam(value = "payeeIdentity") String payeeIdentity,
                                               @RequestParam(value = "paymentModality") String paymentModality,
                                               @RequestParam(value = "requestId") String requestId,
-                                              @RequestHeader(value = "registeringInstitutionId")
+                                              @RequestHeader(value = "X-Registering-Institution-ID")
                                                       String registeringInstitutionId) throws ExecutionException, InterruptedException;
 
 }
