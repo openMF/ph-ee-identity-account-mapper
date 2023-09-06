@@ -1,6 +1,7 @@
 package org.mifos.identityaccountmapper.api.implementation;
 
 import org.mifos.identityaccountmapper.api.definition.BatchAccountLookupApi;
+import org.mifos.identityaccountmapper.data.BatchAccountLookupRequestDTO;
 import org.mifos.identityaccountmapper.data.RequestDTO;
 import org.mifos.identityaccountmapper.data.ResponseDTO;
 import org.mifos.identityaccountmapper.service.AccountLookupService;
@@ -19,7 +20,7 @@ public class BatchAccountLookupApiController implements BatchAccountLookupApi {
     @Autowired
     AccountLookupService accountLookupService;
     @Override
-    public ResponseEntity<ResponseDTO> batchAccountLookup(String callbackURL, RequestDTO requestDTO, String registeringInstitutionId) throws ExecutionException, InterruptedException {
+    public ResponseEntity<ResponseDTO> batchAccountLookup(String callbackURL, BatchAccountLookupRequestDTO requestDTO, String registeringInstitutionId) throws ExecutionException, InterruptedException {
         try{
             accountLookupService.batchAccountLookup(callbackURL, requestDTO.getRequestID(), requestDTO.getBeneficiaries(), registeringInstitutionId);
 
