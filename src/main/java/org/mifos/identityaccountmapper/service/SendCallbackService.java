@@ -1,7 +1,10 @@
 package org.mifos.identityaccountmapper.service;
 
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
 import org.mifos.identityaccountmapper.data.FailedCaseDTO;
 import org.mifos.identityaccountmapper.domain.ErrorTracking;
@@ -20,8 +23,11 @@ public class SendCallbackService {
     public void sendCallback(String body, String callbackURL){
         logger.debug(body);
         logger.debug(callbackURL);
-        Response response = RestAssured.given()
+        RequestSpecification requestSpec = new RequestSpecBuilder().build();
+        requestSpec.relaxedHTTPSValidation();
+        Response response = RestAssured.given(requestSpec)
                 .baseUri(callbackURL)
+                .header("Content-Type", ContentType.JSON)
                 .body(body)
                 .when()
                 .put();
