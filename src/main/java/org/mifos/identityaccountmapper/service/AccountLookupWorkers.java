@@ -1,6 +1,10 @@
 package org.mifos.identityaccountmapper.service;
 
+import static org.mifos.identityaccountmapper.util.AccountMapperEnum.WORKER_ACCOUNT_LOOKUP_CALLBACK;
+
 import io.camunda.zeebe.client.ZeebeClient;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
@@ -11,13 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.Map;
-
-import static org.mifos.identityaccountmapper.util.AccountMapperEnum.WORKER_ACCOUNT_LOOKUP_CALLBACK;
-
 @Component
 public class AccountLookupWorkers {
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -32,25 +32,17 @@ public class AccountLookupWorkers {
     @PostConstruct
     public void setupWorkers() {
         logger.info("## generating " + WORKER_ACCOUNT_LOOKUP_CALLBACK + "zeebe worker");
-        zeebeClient.newWorker()
-                .jobType(WORKER_ACCOUNT_LOOKUP_CALLBACK.getValue())
-                .handler((client, job) -> {
-                    logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
-                    Map<String, Object> existingVariables = job.getVariablesAsMap();
+        zeebeClient.newWorker().jobType(WORKER_ACCOUNT_LOOKUP_CALLBACK.getValue()).handler((client, job) -> {
+            logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+            Map<String, Object> existingVariables = job.getVariablesAsMap();
 
-                    Exchange exchange = new DefaultExchange(camelContext);
+            Exchange exchange = new DefaultExchange(camelContext);
 
-                    logger.debug("Zeebe variables: {}", existingVariables);
-                    producerTemplate.send("direct:send-account-lookup-callback", exchange);
+            logger.debug("Zeebe variables: {}", existingVariables);
+            producerTemplate.send("direct:send-account-lookup-callback", exchange);
 
-
-                    client.newCompleteCommand(job.getKey())
-                            .send()
-                    ;
-                })
-                .name(WORKER_ACCOUNT_LOOKUP_CALLBACK.getValue())
-                .maxJobsActive(workerMaxJobs)
-                .open();
+            client.newCompleteCommand(job.getKey()).send();
+        }).name(WORKER_ACCOUNT_LOOKUP_CALLBACK.getValue()).maxJobsActive(workerMaxJobs).open();
 
     }
 }

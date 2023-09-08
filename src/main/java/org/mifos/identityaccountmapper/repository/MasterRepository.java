@@ -1,17 +1,15 @@
 package org.mifos.identityaccountmapper.repository;
 
+import java.util.Optional;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
-public interface MasterRepository extends JpaRepository<IdentityDetails, Long> ,JpaSpecificationExecutor<IdentityDetails> {
+public interface MasterRepository extends JpaRepository<IdentityDetails, Long>, JpaSpecificationExecutor<IdentityDetails> {
 
     Optional<IdentityDetails> findByMasterIdAndRegisteringInstitutionId(String masterId, String registeringInstitutionId);
 
@@ -19,6 +17,5 @@ public interface MasterRepository extends JpaRepository<IdentityDetails, Long> ,
 
     Boolean existsByPayeeIdentityAndRegisteringInstitutionId(String functionalId, String registeringInstitutionId);
 
-    Page<IdentityDetails> findByRegisteringInstitutionId(String registeringInstitutionId,
-                                                         Pageable pageable);
+    Page<IdentityDetails> findByRegisteringInstitutionId(String registeringInstitutionId, Pageable pageable);
 }

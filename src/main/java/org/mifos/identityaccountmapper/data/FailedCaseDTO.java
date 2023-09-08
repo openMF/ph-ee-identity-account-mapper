@@ -10,7 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FailedCaseDTO {
-    private String payeeIdentity ;
+
+    private String payeeIdentity;
     private String paymentModality;
     private String failureReason;
 

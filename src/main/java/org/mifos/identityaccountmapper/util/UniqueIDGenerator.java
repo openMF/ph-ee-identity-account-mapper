@@ -1,12 +1,14 @@
 package org.mifos.identityaccountmapper.util;
 
-
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
-import java.util.UUID;
 
-public class UniqueIDGenerator {
+public final class UniqueIDGenerator {
+
+    private UniqueIDGenerator() {}
+
     public static String generateUniqueNumber(int length) {
         Random rand = new Random();
         long timestamp = System.currentTimeMillis();
@@ -14,6 +16,7 @@ public class UniqueIDGenerator {
         String uniqueNumber = timestamp + "" + randomLong;
         return uniqueNumber.substring(0, length);
     }
+
     public static String generateUniqueID(int length) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -21,10 +24,10 @@ public class UniqueIDGenerator {
             long timestamp = System.currentTimeMillis();
             int randomInt = rand.nextInt(100000);
             String input = timestamp + "" + randomInt;
-            byte[] hash = md.digest(input.getBytes());
+            byte[] hash = md.digest(input.getBytes(Charset.defaultCharset()));
             String hashString = bytesToHex(hash);
             return hashString.substring(0, length);
-        }catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }

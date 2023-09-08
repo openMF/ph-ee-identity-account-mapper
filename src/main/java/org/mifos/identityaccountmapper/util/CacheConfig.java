@@ -1,6 +1,5 @@
 package org.mifos.identityaccountmapper.util;
 
-
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
@@ -13,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableCaching
-public class CacheConfig  extends CachingConfigurerSupport {
+public class CacheConfig extends CachingConfigurerSupport {
+
     @Value("${spring.cache.time_to_live}")
     private Integer ttl;
     @Value("${spring.cache.time_to_idle}")
@@ -24,6 +24,7 @@ public class CacheConfig  extends CachingConfigurerSupport {
     private Long maxByteOffHeap;
     @Value("${spring.cache.max_byte_disk}")
     private Long maxByteDisk;
+
     @Bean
     public CacheManager ehCacheManager() {
         CacheConfiguration cacheConfig = new CacheConfiguration();
@@ -35,7 +36,6 @@ public class CacheConfig  extends CachingConfigurerSupport {
         cacheConfig.setMaxBytesLocalOffHeap(maxByteOffHeap);
         cacheConfig.setMaxBytesLocalDisk(maxByteDisk);
         cacheConfig.overflowToOffHeap(false);
-
 
         Cache cache = new Cache(cacheConfig);
 

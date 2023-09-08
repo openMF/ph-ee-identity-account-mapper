@@ -1,26 +1,30 @@
 package org.mifos.identityaccountmapper.domain;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "identity_details")
 public class IdentityDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "master_id")
-    private String masterId ;
+    private String masterId;
     @Column(name = "registering_institution_id", nullable = false)
-    private String registeringInstitutionId ;
+    private String registeringInstitutionId;
     @Column(name = "created_on", nullable = false)
-    private LocalDateTime createdOn ;
+    private LocalDateTime createdOn;
     @Column(name = "payee_identity", nullable = false)
-    private String payeeIdentity ;
+    private String payeeIdentity;
 
-    public IdentityDetails() {
-    }
+    public IdentityDetails() {}
 
     public IdentityDetails(String masterId, String registeringInstitutionId, LocalDateTime createdOn, String payeeIdentity) {
         this.masterId = masterId;

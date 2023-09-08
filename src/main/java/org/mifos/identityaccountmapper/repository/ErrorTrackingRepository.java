@@ -6,5 +6,4 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ErrorTrackingRepository extends JpaRepository<ErrorTracking, Long>, JpaSpecificationExecutor<ErrorTracking> {
-}
+public interface ErrorTrackingRepository extends JpaRepository<ErrorTracking, Long>, JpaSpecificationExecutor<ErrorTracking> {}

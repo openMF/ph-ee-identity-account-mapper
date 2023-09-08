@@ -1,25 +1,29 @@
 package org.mifos.identityaccountmapper.domain;
 
-import javax.persistence.*;
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "error_tracking")
 public class ErrorTracking {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "request_id", nullable = false)
-    private String requestId ;
+    private String requestId;
     @Column(name = "payee_identity", nullable = false)
-    private String payeeIdentity ;
+    private String payeeIdentity;
     @Column(name = "modality")
-    private String modality ;
+    private String modality;
     @Column(name = "error_description", nullable = false)
-    private String errorDescription ;
+    private String errorDescription;
 
-    public ErrorTracking() {
-    }
+    public ErrorTracking() {}
 
     public ErrorTracking(String requestId, String payeeIdentity, String modality, String errorDescription) {
         this.requestId = requestId;
