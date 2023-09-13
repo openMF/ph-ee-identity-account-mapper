@@ -2,6 +2,8 @@ package org.mifos.identityaccountmapper.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
 import org.mifos.identityaccountmapper.data.AccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.PaymentModalityDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
@@ -15,11 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 public class AccountLookupReadService {
+
     private final MasterRepository masterRepository;
     private final ErrorTrackingRepository errorTrackingRepository;
     private final PaymentModalityRepository paymentModalityRepository;
@@ -27,25 +27,24 @@ public class AccountLookupReadService {
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(AccountLookupReadService.class);
 
-
     @Autowired
     public AccountLookupReadService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
-                                     PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService,
-                                    ObjectMapper objectMapper){
+            PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService, ObjectMapper objectMapper) {
         this.masterRepository = masterRepository;
         this.errorTrackingRepository = errorTrackingRepository;
         this.paymentModalityRepository = paymentModalityRepository;
         this.sendCallbackService = sendCallbackService;
         this.objectMapper = objectMapper;
     }
-    @Cacheable(value = "accountLookupCache",key = "#payeeIdentity")
-    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId, String registeringInstitutionId, Boolean isValidated){
+
+    @Cacheable(value = "accountLookupCache", key = "#payeeIdentity")
+    public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId, String registeringInstitutionId,
+            Boolean isValidated) {
         IdentityDetails identityDetails = null;
         List<PaymentModalityDetails> paymentModalityDetails = new ArrayList<>();
-        try{
-            identityDetails = masterRepository
-                    .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
-                    .orElseThrow(()-> new RuntimeException("Payee Identity does not exist."));
+        try {
+            identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
+                    .orElseThrow(() -> new RuntimeException("Payee Identity does not exist."));
             paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId());
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -58,11 +57,13 @@ public class AccountLookupReadService {
         return createResponseDTO(paymentModalityDetails, identityDetails, requestId, isValidated);
     }
 
-    private AccountLookupResponseDTO createResponseDTO(List<PaymentModalityDetails> paymentModalityDetailsList, IdentityDetails identityDetails, String requestId, Boolean isValidated){
+    private AccountLookupResponseDTO createResponseDTO(List<PaymentModalityDetails> paymentModalityDetailsList,
+            IdentityDetails identityDetails, String requestId, Boolean isValidated) {
         List<PaymentModalityDTO> paymentModalityList = new ArrayList<>();
-        for(PaymentModalityDetails paymentModalityDetails: paymentModalityDetailsList){
-            paymentModalityList.add(new PaymentModalityDTO(paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
+        for (PaymentModalityDetails paymentModalityDetails : paymentModalityDetailsList) {
+            paymentModalityList.add(new PaymentModalityDTO(paymentModalityDetails.getModality(),
+                    paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
         }
-        return new AccountLookupResponseDTO(requestId, identityDetails.getPayeeIdentity(),paymentModalityList, isValidated);
+        return new AccountLookupResponseDTO(requestId, identityDetails.getPayeeIdentity(), paymentModalityList, isValidated);
     }
 }

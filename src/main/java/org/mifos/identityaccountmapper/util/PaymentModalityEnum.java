@@ -1,11 +1,9 @@
 package org.mifos.identityaccountmapper.util;
 
 public enum PaymentModalityEnum {
-    ACCOUNT_ID("00"),
-    MSISDN("01"),
-    VIRTUAL_ADDRESS("02"),
-    WALLET_ID("03"),
-    VOUCHER("04");
+
+    ACCOUNT_ID("00"), MSISDN("01"), VIRTUAL_ADDRESS("02"), WALLET_ID("03"), VOUCHER("04");
+
     private final String value;
 
     PaymentModalityEnum(String value) {
@@ -20,6 +18,7 @@ public enum PaymentModalityEnum {
         }
         return null;
     }
+
     public static String getKeyByValue(String value) {
         for (PaymentModalityEnum pair : values()) {
             if (pair.getValue().equalsIgnoreCase(value)) {
@@ -28,7 +27,6 @@ public enum PaymentModalityEnum {
         }
         return null;
     }
-
 
     public String getValue() {
         return this.value;

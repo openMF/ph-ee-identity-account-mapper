@@ -2,6 +2,11 @@ package org.mifos.identityaccountmapper.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import javax.transaction.Transactional;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
 import org.mifos.identityaccountmapper.data.RequestDTO;
@@ -18,11 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 public class RegisterBeneficiaryService {
 
@@ -35,8 +35,7 @@ public class RegisterBeneficiaryService {
 
     @Autowired
     public RegisterBeneficiaryService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
-                                       PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService,
-                                      ObjectMapper objectMapper){
+            PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService, ObjectMapper objectMapper) {
         this.masterRepository = masterRepository;
         this.errorTrackingRepository = errorTrackingRepository;
         this.paymentModalityRepository = paymentModalityRepository;
@@ -44,14 +43,13 @@ public class RegisterBeneficiaryService {
         this.objectMapper = objectMapper;
     }
 
-
     @Async("asyncExecutor")
     public void registerBeneficiary(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
         List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
         List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
         validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
-        CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList,requestBody.getRequestID());
+        CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
 
         try {
             sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
@@ -61,44 +59,50 @@ public class RegisterBeneficiaryService {
     }
 
     @Transactional
-    private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
-        beneficiariesList.stream().forEach(beneficiary ->{
-            String requestID  = request.getRequestID();
-            Boolean beneficiaryExists =  validateBeneficiary(beneficiary, requestID, errorTrackingList, registeringInstitutionId);
+    private void validateAndSaveBeneficiaries(List<BeneficiaryDTO> beneficiariesList, RequestDTO request,
+            List<ErrorTracking> errorTrackingList, String registeringInstitutionId) {
+        beneficiariesList.stream().forEach(beneficiary -> {
+            String requestID = request.getRequestID();
+            Boolean beneficiaryExists = validateBeneficiary(beneficiary, requestID, errorTrackingList, registeringInstitutionId);
             try {
                 if (!beneficiaryExists) {
                     String masterId = UniqueIDGenerator.generateUniqueNumber(20);
-                    IdentityDetails identityDetails = new IdentityDetails(masterId, registeringInstitutionId, LocalDateTime.now(), beneficiary.getPayeeIdentity());
+                    IdentityDetails identityDetails = new IdentityDetails(masterId, registeringInstitutionId,
+                            LocalDateTime.now(ZoneId.systemDefault()), beneficiary.getPayeeIdentity());
                     this.masterRepository.save(identityDetails);
-                    PaymentModalityDetails paymentModalityDetails = new PaymentModalityDetails(masterId, beneficiary.getFinancialAddress(), beneficiary.getPaymentModality(), beneficiary.getBankingInstitutionCode());
+                    PaymentModalityDetails paymentModalityDetails = new PaymentModalityDetails(masterId, beneficiary.getFinancialAddress(),
+                            beneficiary.getPaymentModality(), beneficiary.getBankingInstitutionCode());
                     this.paymentModalityRepository.save(paymentModalityDetails);
                 }
-            }catch (RuntimeException e) {
+            } catch (RuntimeException e) {
                 try {
-                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(), e.getMessage());
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), e.getMessage());
                     this.errorTrackingRepository.save(errorTracking);
                 } catch (RuntimeException ex) {
                     logger.error(e.getMessage());
                 } catch (Exception e2) {
                     logger.error(e2.getMessage());
                 }
-            }catch(Exception e){
+            } catch (Exception e) {
                 logger.error(e.getMessage());
             }
         });
     }
 
     @Transactional
-    private Boolean validateBeneficiary(BeneficiaryDTO beneficiary, String requestID, List<ErrorTracking> errorTrackingList, String registeringInstitutionId){
-        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(),registeringInstitutionId);
-        try{
-            if(beneficiaryExists){
-                ErrorTracking  errorTracking= new ErrorTracking(requestID,beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),"Beneficiary already registered");
+    private Boolean validateBeneficiary(BeneficiaryDTO beneficiary, String requestID, List<ErrorTracking> errorTrackingList,
+            String registeringInstitutionId) {
+        Boolean beneficiaryExists = masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(),
+                registeringInstitutionId);
+        try {
+            if (beneficiaryExists) {
+                ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                        "Beneficiary already registered");
                 errorTrackingList.add(errorTracking);
                 this.errorTrackingRepository.save(errorTracking);
             }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
         return beneficiaryExists;

@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FetchBeneficiariesResponseDTO {
+
     private String registeringInstitutionId;
     private String payeeIdentity;
     private String paymentModality;

@@ -1,24 +1,29 @@
 package org.mifos.identityaccountmapper.domain;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "payment_modality_details")
 public class PaymentModalityDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "master_id", nullable = false)
-    private String masterId ;
+    private String masterId;
     @Column(name = "destination_account", nullable = true)
-    private String destinationAccount ;
+    private String destinationAccount;
     @Column(name = "modality")
-    private String modality ;
+    private String modality;
     @Column(name = "institution_code", nullable = true)
-    private String institutionCode ;
+    private String institutionCode;
 
-    public PaymentModalityDetails() {
-    }
+    public PaymentModalityDetails() {}
 
     public PaymentModalityDetails(String masterId, String destinationAccount, String modality, String institutionCode) {
         this.masterId = masterId;

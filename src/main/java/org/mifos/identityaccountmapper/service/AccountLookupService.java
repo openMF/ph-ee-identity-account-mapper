@@ -1,12 +1,18 @@
 package org.mifos.identityaccountmapper.service;
 
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.getKeyByValue;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.getValueByKey;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.mifos.identityaccountmapper.data.BatchAccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
 import org.mifos.identityaccountmapper.domain.PaymentModalityDetails;
-import org.mifos.identityaccountmapper.exception.AccountValidationException;
 import org.mifos.identityaccountmapper.exception.PayeeIdentityException;
 import org.mifos.identityaccountmapper.repository.ErrorTrackingRepository;
 import org.mifos.identityaccountmapper.repository.MasterRepository;
@@ -21,16 +27,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.getKeyByValue;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.getValueByKey;
-
 @Service
 public class AccountLookupService {
+
     private final MasterRepository masterRepository;
     private final ErrorTrackingRepository errorTrackingRepository;
     private final PaymentModalityRepository paymentModalityRepository;
@@ -40,19 +39,19 @@ public class AccountLookupService {
     @Value("${account_validation_enabled}")
     private Boolean accountValidationEnabled;
     @Value("${account_validator_connector}")
-    private  String accountValidatorConnector;
+    private String accountValidatorConnector;
     @Value("${callback_enabled}")
-    private  Boolean callbackEnabled;
+    private Boolean callbackEnabled;
     @Autowired
     private ApplicationContext applicationContext;
 
     private static final Logger logger = LoggerFactory.getLogger(AccountLookupService.class);
-    private final Set<String> paymentModalityCodes =  new HashSet<>(Set.of("00", "01","02"));
+    private final Set<String> paymentModalityCodes = new HashSet<>(Set.of("00", "01", "02"));
 
     @Autowired
     public AccountLookupService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
-                                PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService,
-                                ObjectMapper objectMapper, AccountLookupReadService accountLookupReadService){
+            PaymentModalityRepository paymentModalityRepository, SendCallbackService sendCallbackService, ObjectMapper objectMapper,
+            AccountLookupReadService accountLookupReadService) {
         this.masterRepository = masterRepository;
         this.errorTrackingRepository = errorTrackingRepository;
         this.paymentModalityRepository = paymentModalityRepository;
@@ -60,14 +59,19 @@ public class AccountLookupService {
         this.objectMapper = objectMapper;
         this.accountLookupReadService = accountLookupReadService;
     }
-    @Async("asyncExecutor")
-    public void batchAccountLookup(String callbackURL, String requestId, List<BeneficiaryDTO> beneficiariesList, String registeringInstitutionId ){
-        List<BeneficiaryDTO> accountLookupList = new ArrayList<>();
-        beneficiariesList.stream().forEach(beneficiary ->{
-            if(masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId)) {
-                IdentityDetails identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId).orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
-                PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
 
+    @Async("asyncExecutor")
+    public void batchAccountLookup(String callbackURL, String requestId, List<BeneficiaryDTO> beneficiariesList,
+            String registeringInstitutionId) {
+        List<BeneficiaryDTO> accountLookupList = new ArrayList<>();
+        beneficiariesList.stream().forEach(beneficiary -> {
+            if (masterRepository.existsByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(),
+                    registeringInstitutionId)) {
+                IdentityDetails identityDetails = masterRepository
+                        .findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId)
+                        .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));
+                PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId())
+                        .get(0);
 
                 if (accountValidationEnabled) {
                     AccountValidationService accountValidationService = null;
@@ -78,31 +82,39 @@ public class AccountLookupService {
                     }
                     assert accountValidationService != null;
                     Boolean accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
-                            paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModalityDetails.getModality()), beneficiary.getPayeeIdentity(), callbackURL);
-                    if(!accountValidate){
-                            return;
+                            paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModalityDetails.getModality()),
+                            beneficiary.getPayeeIdentity(), callbackURL);
+                    if (!accountValidate) {
+                        return;
                     }
                 }
-                accountLookupList.add(new BeneficiaryDTO(beneficiary.getPayeeIdentity(), paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
+                accountLookupList.add(new BeneficiaryDTO(beneficiary.getPayeeIdentity(), paymentModalityDetails.getModality(),
+                        paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode()));
 
             }
         });
-        BatchAccountLookupResponseDTO batchAccountLookupResponse = new BatchAccountLookupResponseDTO(requestId, registeringInstitutionId, accountLookupList);
+        BatchAccountLookupResponseDTO batchAccountLookupResponse = new BatchAccountLookupResponseDTO(requestId, registeringInstitutionId,
+                accountLookupList);
         try {
             sendCallbackService.sendCallback(objectMapper.writeValueAsString(batchAccountLookupResponse), callbackURL);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
+
     @Async("asyncExecutor")
-    public void accountLookup(String callbackURL,String payeeIdentity, String paymentModality, String requestId, String registeringInstitutionId){
-        IdentityDetails identityDetails = masterRepository.findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId).orElseThrow(()-> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
-        if(!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)){
-            sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.", callbackURL);
+    public void accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
+            String registeringInstitutionId) {
+        IdentityDetails identityDetails = masterRepository
+                .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
+                .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
+        if (!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)) {
+            sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.",
+                    callbackURL);
             return;
         }
         PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
-        if(!paymentModalityCodes.contains(paymentModality)){
+        if (!paymentModalityCodes.contains(paymentModality)) {
             paymentModality = getValueByKey(paymentModality);
         }
         AccountValidationService accountValidationService = null;
@@ -112,7 +124,7 @@ public class AccountLookupService {
             // Handle the case when the bean is not found in the application context
         }
         Boolean accountValidate = null;
-        if(accountValidationService != null) {
+        if (accountValidationService != null) {
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
         }
@@ -121,14 +133,18 @@ public class AccountLookupService {
 
     }
 
-    public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId, String registeringInstitutionId){
+    public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId,
+            String registeringInstitutionId) {
         try {
-            sendCallbackService.sendCallback(objectMapper.writeValueAsString(accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId, registeringInstitutionId, accountValidate)), callbackURL);
+            sendCallbackService.sendCallback(objectMapper.writeValueAsString(
+                    accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId, registeringInstitutionId, accountValidate)),
+                    callbackURL);
         } catch (JsonProcessingException | RuntimeException e) {
             logger.error(e.getMessage());
         }
     }
-    public String fetchPaymentModality(String paymentModality){
+
+    public String fetchPaymentModality(String paymentModality) {
         return getKeyByValue(paymentModality);
     }
 }
