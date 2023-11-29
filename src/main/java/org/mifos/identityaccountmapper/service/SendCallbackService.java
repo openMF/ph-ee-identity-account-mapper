@@ -29,7 +29,7 @@ public class SendCallbackService {
                 .put();
 
         String responseBody = response.getBody().asString();
-        logger.debug(responseBody);
+        logger.info(responseBody);
         int responseCode = response.getStatusCode();
         logger.debug(String.valueOf(responseCode));
     }

@@ -78,6 +78,7 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
         // String response = exchange.getIn().getBody(String.class);
         BatchAccountLookupResponseDTO batchAccountLookupResponseDTO = null;
         try {
+            logger.info(requestBody);
             batchAccountLookupResponseDTO = objectMapper.readValue(requestBody, BatchAccountLookupResponseDTO.class);
             variables.put("batchAccountLookupCallback", requestBody);
             transactionId = batchAccountLookupResponseDTO.getRequestID();
