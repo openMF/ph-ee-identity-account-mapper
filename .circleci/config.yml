@@ -121,6 +121,13 @@ jobs:
             docker push openmf/$CIRCLE_PR_REPONAME:${JIRA_STORY}
             fi
 
+      - run:
+          name: swagger generation
+          command: |
+            ./gradlew clean generateOpenApiDocs
+            ssh -i b64encoded.pem -o StrictHostKeyChecking=No ec2-user@13.233.68.128 sudo mkdir -p /apps/apache-tomcat-7.0.82/webapps/ROOT/images/API-Docs/IdAM
+            scp -o StrictHostKeyChecking=No -i b64encoded.pem swagger.yaml ec2-user@13.233.68.128:~/
+            ssh -i b64encoded.pem -o StrictHostKeyChecking=No ec2-user@13.233.68.128 sudo mv -t /apps/apache-tomcat-7.0.82/webapps/ROOT/images/API-Docs/IdAM swagger.yaml
 workflows:
   build_and_push_image:
     jobs:
