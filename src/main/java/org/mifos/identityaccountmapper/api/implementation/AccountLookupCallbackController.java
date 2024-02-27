@@ -56,16 +56,18 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
             if (!isValidated) {
                 variables.put(ACCOUNT_LOOKUP_FAILED, true);
             }
+            logger.info("END of TRY block Error: {}", isValidated);
         } catch (IOException e) {
             variables.put(ACCOUNT_LOOKUP_FAILED, true);
             error = objectMapper.readValue(requestBody, String.class);
+            logger.info("Error: {}",error);
         }
 
-        if (zeebeClient != null) {
+//        if (zeebeClient != null) {
 
             zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId)
                     .timeToLive(Duration.ofMillis(50000)).variables(variables).send();
-        }
+//        }
         return ResponseEntity.status(HttpStatus.OK).body("Accepted");
     }
 
