@@ -70,14 +70,11 @@ public class ValidatorInterceptor implements HandlerInterceptor {
                 // Using ValidatorBuilder for header validation
                 final ValidatorBuilder validatorBuilder = new ValidatorBuilder();
                 validatorBuilder.reset().resource(resource).parameter(callbackURL).value(request.getHeader(callbackURL))
-                        .isNullWithFailureCode(IdentityMapperValidatorsEnum.INVALID_CALLBACK_URL)
-                        .validateFieldMaxLengthWithFailureCodeAndErrorParams(100, IdentityMapperValidatorsEnum.INVALID_CALLBACK_URL_LENGTH);
+                        .isNullWithFailureCode(IdentityMapperValidatorsEnum.INVALID_CALLBACK_URL);
 
                 validatorBuilder.reset().resource(resource).parameter(registeringInstitutionId)
                         .value(request.getHeader(registeringInstitutionId))
-                        .isNullWithFailureCode(IdentityMapperValidatorsEnum.INVALID_REGISTERING_INSTITUTION_ID)
-                        .validateFieldNotBlankAndLengthWithFailureCodeAndErrorParams(20,
-                                IdentityMapperValidatorsEnum.INVALID_REGISTERING_INSTITUTION_ID_LENGTH);
+                        .isNullWithFailureCode(IdentityMapperValidatorsEnum.INVALID_REGISTERING_INSTITUTION_ID);
 
                 // If errors exist, set the response and return false
                 if (validatorBuilder.hasError()) {

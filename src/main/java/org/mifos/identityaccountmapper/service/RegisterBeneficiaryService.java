@@ -38,6 +38,7 @@ public class RegisterBeneficiaryService {
     private final SendCallbackService sendCallbackService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(RegisterBeneficiaryService.class);
+    @Autowired
     private BeneficiaryValidator beneficiaryValidator;
 
     @Autowired
@@ -113,8 +114,8 @@ public class RegisterBeneficiaryService {
                 this.errorTrackingRepository.save(errorTracking);
             } else {
                 logger.info("payee Identity {} {}", beneficiary.getPayeeIdentity(), beneficiary.getPayeeIdentity().length());
-                if (beneficiary.getPayeeIdentity() != null && (!beneficiary.getPayeeIdentity().isEmpty()
-                        || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
+                if (beneficiary.getPayeeIdentity() == null || beneficiary.getPayeeIdentity().isEmpty()
+                        || (!beneficiary.getPayeeIdentity().isEmpty() && beneficiary.getPayeeIdentity().length() > 12)) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Payee Identity Invalid");
                     errorTrackingList.add(errorTracking);
@@ -128,8 +129,7 @@ public class RegisterBeneficiaryService {
                             beneficiary.getPaymentModality(), "Payee Modality Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
-                } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().isEmpty()
-                        || beneficiary.getFinancialAddress().length() > 30) {
+                } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().length() > 30) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Financial Address Invalid");
                     errorTrackingList.add(errorTracking);

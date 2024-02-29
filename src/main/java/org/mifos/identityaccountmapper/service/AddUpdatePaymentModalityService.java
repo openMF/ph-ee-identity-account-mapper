@@ -38,6 +38,7 @@ public class AddUpdatePaymentModalityService {
     private final SendCallbackService sendCallbackService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(AddUpdatePaymentModalityService.class);
+    @Autowired
     private BeneficiaryValidator beneficiaryValidator;
 
     @Autowired
@@ -66,7 +67,13 @@ public class AddUpdatePaymentModalityService {
             List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
             validateAndUpdatePaymentModality(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
-            sendCallback(errorTrackingsList, requestBody.getRequestID(), callbackURL);
+            CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
+
+            try {
+                sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
+            } catch (JsonProcessingException e) {
+                logger.error(e.getMessage());
+            }
 
         }
         return phErrorDTO;
@@ -169,12 +176,6 @@ public class AddUpdatePaymentModalityService {
                 registeringInstitutionId);
         if (!beneficiaryExists) {
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
-        } else if (beneficiary.getPayeeIdentity() != null && (!beneficiary.getPayeeIdentity().isEmpty()
-                || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
-            ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
-                    "Payee Identity Invalid");
-            errorTrackingList.add(errorTracking);
-            beneficiaryExists = false;
         } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
                 || beneficiary.getPaymentModality().equals(MSISDN.getValue())
                 || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
@@ -184,8 +185,7 @@ public class AddUpdatePaymentModalityService {
                     "Payee Modality Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
-        } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().isEmpty()
-                || beneficiary.getFinancialAddress().length() > 30) {
+        } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().length() > 30) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Financial Address Invalid");
             errorTrackingList.add(errorTracking);
