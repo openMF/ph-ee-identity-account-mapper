@@ -60,14 +60,14 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
         } catch (IOException e) {
             variables.put(ACCOUNT_LOOKUP_FAILED, true);
             error = objectMapper.readValue(requestBody, String.class);
-            logger.info("Error: {}",error);
+            logger.info("Error: {}", error);
         }
 
-//        if (zeebeClient != null) {
+        // if (zeebeClient != null) {
 
-            zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId)
-                    .timeToLive(Duration.ofMillis(1000)).variables(variables).send();
-//        }
+        zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId).timeToLive(Duration.ofMillis(1000))
+                .variables(variables).send();
+        // }
         return ResponseEntity.status(HttpStatus.OK).body("Accepted");
     }
 
