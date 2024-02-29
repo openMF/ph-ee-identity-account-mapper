@@ -1,11 +1,16 @@
 package org.mifos.identityaccountmapper.service;
 
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.ACCOUNT_ID;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.MSISDN;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VIRTUAL_ADDRESS;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VOUCHER;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.WALLET_ID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import javax.transaction.Transactional;
-
 import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
@@ -23,12 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.ACCOUNT_ID;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.MSISDN;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VIRTUAL_ADDRESS;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VOUCHER;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.WALLET_ID;
 
 @Service
 public class AddUpdatePaymentModalityService {
@@ -59,7 +58,6 @@ public class AddUpdatePaymentModalityService {
         validateAndAddPaymentModality(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
         sendCallback(errorTrackingsList, requestBody.getRequestID(), callbackURL);
     }
-
 
     public PhErrorDTO updatePaymentModality(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
         PhErrorDTO phErrorDTO = beneficiaryValidator.validateCreateBeneficiary(requestBody);
@@ -171,28 +169,28 @@ public class AddUpdatePaymentModalityService {
                 registeringInstitutionId);
         if (!beneficiaryExists) {
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
-        }else if (beneficiary.getPayeeIdentity() != null
-                && (!beneficiary.getPayeeIdentity().isEmpty() || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
+        } else if (beneficiary.getPayeeIdentity() != null && (!beneficiary.getPayeeIdentity().isEmpty()
+                || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Payee Identity Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
-        } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue()) || beneficiary.getPaymentModality().equals(MSISDN.getValue())
-                || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue()) || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
+        } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
+                || beneficiary.getPaymentModality().equals(MSISDN.getValue())
+                || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
+                || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
                 || beneficiary.getPaymentModality().equals(VOUCHER.getValue()))) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Payee Modality Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
-        } else if(beneficiary.getFinancialAddress() != null
-                && beneficiary.getFinancialAddress().isEmpty()
-                || beneficiary.getFinancialAddress().length() > 30){
+        } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().isEmpty()
+                || beneficiary.getFinancialAddress().length() > 30) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Financial Address Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
-        }
-        else {
+        } else {
             IdentityDetails identityDetails = masterRepository
                     .findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId)
                     .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(beneficiary.getPayeeIdentity()));

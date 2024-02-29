@@ -7,7 +7,6 @@ import static org.mifos.identityaccountmapper.util.AccountMapperEnum.SUCCESS_RES
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.concurrent.ExecutionException;
-
 import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.identityaccountmapper.api.definition.UpdateBeneficiaryApi;
 import org.mifos.identityaccountmapper.data.RequestDTO;
@@ -28,7 +27,8 @@ public class UpdateBeneficiaryApiController implements UpdateBeneficiaryApi {
     public <T> ResponseEntity<T> registerBeneficiary(String callbackURL, String registeringInstitutionId, RequestDTO requestBody)
             throws ExecutionException, InterruptedException, JsonProcessingException {
         try {
-            PhErrorDTO phErrorDTO = addUpdatePaymentModalityService.updatePaymentModality(callbackURL, requestBody, registeringInstitutionId);
+            PhErrorDTO phErrorDTO = addUpdatePaymentModalityService.updatePaymentModality(callbackURL, requestBody,
+                    registeringInstitutionId);
             if (phErrorDTO != null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body((T) phErrorDTO);
             }

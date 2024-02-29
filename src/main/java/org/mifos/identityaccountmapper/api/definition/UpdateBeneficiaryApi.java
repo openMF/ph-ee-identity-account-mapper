@@ -3,7 +3,6 @@ package org.mifos.identityaccountmapper.api.definition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.concurrent.ExecutionException;
 import org.mifos.identityaccountmapper.data.RequestDTO;
-import org.mifos.identityaccountmapper.data.ResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;

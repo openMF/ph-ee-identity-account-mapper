@@ -111,26 +111,27 @@ public class RegisterBeneficiaryService {
                         "Beneficiary already registered");
                 errorTrackingList.add(errorTracking);
                 this.errorTrackingRepository.save(errorTracking);
-            }else {
-                logger.info("payee Identity {} {}",beneficiary.getPayeeIdentity(), beneficiary.getPayeeIdentity().length());
-                if (beneficiary.getPayeeIdentity() != null
-                        && (!beneficiary.getPayeeIdentity().isEmpty() || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
-                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
-                            "Payee Identity Invalid");
+            } else {
+                logger.info("payee Identity {} {}", beneficiary.getPayeeIdentity(), beneficiary.getPayeeIdentity().length());
+                if (beneficiary.getPayeeIdentity() != null && (!beneficiary.getPayeeIdentity().isEmpty()
+                        || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Payee Identity Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
-                } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue()) || beneficiary.getPaymentModality().equals(MSISDN.getValue())
-                        || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue()) || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
+                } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
+                        || beneficiary.getPaymentModality().equals(MSISDN.getValue())
+                        || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
+                        || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
                         || beneficiary.getPaymentModality().equals(VOUCHER.getValue()))) {
-                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
-                            "Payee Modality Invalid");
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Payee Modality Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
-                } else if(beneficiary.getFinancialAddress() != null
-                        && beneficiary.getFinancialAddress().isEmpty()
-                        || beneficiary.getFinancialAddress().length() > 30){
-                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
-                            "Financial Address Invalid");
+                } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().isEmpty()
+                        || beneficiary.getFinancialAddress().length() > 30) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Financial Address Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
                 }
