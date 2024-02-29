@@ -66,7 +66,7 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
 //        if (zeebeClient != null) {
 
             zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId)
-                    .timeToLive(Duration.ofMillis(50000)).variables(variables).send();
+                    .timeToLive(Duration.ofMillis(1000)).variables(variables).send();
 //        }
         return ResponseEntity.status(HttpStatus.OK).body("Accepted");
     }
