@@ -52,20 +52,24 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
             variables.put(PAYEE_PARTY_ID_TYPE, accountLookupResponseDTO.getPaymentModalityList().get(0).getPaymentModality());
             variables.put(PARTY_LOOKUP_FSP_ID, accountLookupResponseDTO.getPaymentModalityList().get(0).getBankingInstitutionCode());
             transactionId = accountLookupResponseDTO.getRequestId();
+            logger.info("TRANSACTION ID: {}",transactionId);
             Boolean isValidated = accountLookupResponseDTO.getIsValidated();
             if (!isValidated) {
                 variables.put(ACCOUNT_LOOKUP_FAILED, true);
             }
+            logger.info("END of TRY block Error: {}", isValidated);
         } catch (IOException e) {
             variables.put(ACCOUNT_LOOKUP_FAILED, true);
             error = objectMapper.readValue(requestBody, String.class);
+            logger.info("Error: {}", error);
         }
+        Thread.sleep(3000);
+        // if (zeebeClient != null) {
 
-        if (zeebeClient != null) {
-
-            zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId)
-                    .timeToLive(Duration.ofMillis(50000)).variables(variables).send();
-        }
+        zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId).timeToLive(Duration.ofMillis(360000))
+                .variables(variables).send().join();
+        logger.info("-------------> variable published");
+        // }
         return ResponseEntity.status(HttpStatus.OK).body("Accepted");
     }
 
