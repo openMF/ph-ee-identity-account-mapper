@@ -1,5 +1,11 @@
 package org.mifos.identityaccountmapper.service;
 
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.ACCOUNT_ID;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.MSISDN;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VIRTUAL_ADDRESS;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VOUCHER;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.WALLET_ID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
@@ -7,6 +13,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
 import org.mifos.identityaccountmapper.data.RequestDTO;
@@ -20,7 +27,6 @@ import org.mifos.identityaccountmapper.util.UniqueIDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,6 +38,7 @@ public class RegisterBeneficiaryService {
     private final SendCallbackService sendCallbackService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(RegisterBeneficiaryService.class);
+    private BeneficiaryValidator beneficiaryValidator;
 
     @Autowired
     public RegisterBeneficiaryService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
@@ -43,19 +50,22 @@ public class RegisterBeneficiaryService {
         this.objectMapper = objectMapper;
     }
 
-    @Async("asyncExecutor")
-    public void registerBeneficiary(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
-        List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
-        List<ErrorTracking> errorTrackingsList = new ArrayList<>();
+    public PhErrorDTO registerBeneficiary(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
+        PhErrorDTO phErrorDTO = beneficiaryValidator.validateCreateBeneficiary(requestBody);
+        if (phErrorDTO == null) {
+            List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
+            List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
-        validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
-        CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
+            validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
+            CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
 
-        try {
-            sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
-        } catch (JsonProcessingException e) {
-            logger.error(e.getMessage());
+            try {
+                sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
+            } catch (JsonProcessingException e) {
+                logger.error(e.getMessage());
+            }
         }
+        return phErrorDTO;
     }
 
     @Transactional
@@ -101,6 +111,29 @@ public class RegisterBeneficiaryService {
                         "Beneficiary already registered");
                 errorTrackingList.add(errorTracking);
                 this.errorTrackingRepository.save(errorTracking);
+            }else {
+                logger.info("payee Identity {} {}",beneficiary.getPayeeIdentity(), beneficiary.getPayeeIdentity().length());
+                if (beneficiary.getPayeeIdentity() != null
+                        && (!beneficiary.getPayeeIdentity().isEmpty() || beneficiary.getPayeeIdentity().length() > 0 && beneficiary.getPayeeIdentity().length() <= 12)) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                            "Payee Identity Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+                } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue()) || beneficiary.getPaymentModality().equals(MSISDN.getValue())
+                        || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue()) || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
+                        || beneficiary.getPaymentModality().equals(VOUCHER.getValue()))) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                            "Payee Modality Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+                } else if(beneficiary.getFinancialAddress() != null
+                        && beneficiary.getFinancialAddress().isEmpty()
+                        || beneficiary.getFinancialAddress().length() > 30){
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                            "Financial Address Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());

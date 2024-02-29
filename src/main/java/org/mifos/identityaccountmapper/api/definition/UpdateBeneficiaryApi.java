@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface UpdateBeneficiaryApi {
 
     @PutMapping("/beneficiary")
-    ResponseEntity<ResponseDTO> registerBeneficiary(@RequestHeader(value = "X-CallbackURL") String callbackURL,
+    <T> ResponseEntity<T> registerBeneficiary(@RequestHeader(value = "X-CallbackURL") String callbackURL,
             @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId, @RequestBody RequestDTO requestBody)
             throws ExecutionException, InterruptedException, JsonProcessingException;
 }
