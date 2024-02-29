@@ -120,7 +120,7 @@ public class RegisterBeneficiaryService {
                             beneficiary.getPaymentModality(), "Payee Identity Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
-                } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
+                } else if (beneficiary.getPaymentModality() != null && !(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
                         || beneficiary.getPaymentModality().equals(MSISDN.getValue())
                         || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
                         || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
@@ -129,6 +129,18 @@ public class RegisterBeneficiaryService {
                             beneficiary.getPaymentModality(), "Payee Modality Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
+                } else if ((beneficiary.getPaymentModality() != null
+                        && (beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
+                                || beneficiary.getPaymentModality().equals(MSISDN.getValue())
+                                || beneficiary.getPaymentModality().equals(WALLET_ID.getValue()))
+                        && ((beneficiary.getBankingInstitutionCode() == null || beneficiary.getBankingInstitutionCode().isEmpty())
+                                || ((beneficiary.getBankingInstitutionCode() != null
+                                        && beneficiary.getBankingInstitutionCode().length() > 11))))) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Banking Institution Code Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+
                 } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().length() > 30) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Financial Address Invalid");

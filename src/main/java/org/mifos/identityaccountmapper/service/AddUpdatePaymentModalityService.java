@@ -176,13 +176,24 @@ public class AddUpdatePaymentModalityService {
                 registeringInstitutionId);
         if (!beneficiaryExists) {
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
-        } else if (!(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
+        } else if ((beneficiary.getPaymentModality() != null
+                && (beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
+                        || beneficiary.getPaymentModality().equals(MSISDN.getValue())
+                        || beneficiary.getPaymentModality().equals(WALLET_ID.getValue()))
+                && ((beneficiary.getBankingInstitutionCode() == null || beneficiary.getBankingInstitutionCode().isEmpty())
+                        || ((beneficiary.getBankingInstitutionCode() != null && beneficiary.getBankingInstitutionCode().length() > 11))))) {
+            ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                    "Banking Institution Code Invalid");
+            errorTrackingList.add(errorTracking);
+            beneficiaryExists = false;
+
+        } else if (beneficiary.getPaymentModality() != null && !(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
                 || beneficiary.getPaymentModality().equals(MSISDN.getValue())
                 || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
                 || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
                 || beneficiary.getPaymentModality().equals(VOUCHER.getValue()))) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
-                    "Payee Modality Invalid");
+                    "Payment Modality Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
         } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().length() > 30) {
