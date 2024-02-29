@@ -63,7 +63,7 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
             error = objectMapper.readValue(requestBody, String.class);
             logger.info("Error: {}", error);
         }
-
+        Thread.sleep(3000);
         // if (zeebeClient != null) {
 
         zeebeClient.newPublishMessageCommand().messageName(ACCOUNT_LOOKUP).correlationKey(transactionId).timeToLive(Duration.ofMillis(360000))
