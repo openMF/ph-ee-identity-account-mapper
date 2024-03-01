@@ -1,11 +1,5 @@
 package org.mifos.identityaccountmapper.service;
 
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.ACCOUNT_ID;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.MSISDN;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VIRTUAL_ADDRESS;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VOUCHER;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.WALLET_ID;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -176,27 +170,19 @@ public class AddUpdatePaymentModalityService {
                 registeringInstitutionId);
         if (!beneficiaryExists) {
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
-        } else if ((beneficiary.getPaymentModality() != null
-                && (beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
-                        || beneficiary.getPaymentModality().equals(MSISDN.getValue())
-                        || beneficiary.getPaymentModality().equals(WALLET_ID.getValue()))
-                && ((beneficiary.getBankingInstitutionCode() == null || beneficiary.getBankingInstitutionCode().isEmpty())
-                        || ((beneficiary.getBankingInstitutionCode() != null && beneficiary.getBankingInstitutionCode().length() > 11))))) {
+        } else if (!beneficiaryValidator.validateBankingInstitutionCode(beneficiary.getPaymentModality(),
+                beneficiary.getBankingInstitutionCode())) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Banking Institution Code Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
 
-        } else if (beneficiary.getPaymentModality() != null && !(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
-                || beneficiary.getPaymentModality().equals(MSISDN.getValue())
-                || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
-                || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
-                || beneficiary.getPaymentModality().equals(VOUCHER.getValue()))) {
+        } else if (!beneficiaryValidator.validatePaymentModality(beneficiary.getPaymentModality())) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Payment Modality Invalid");
             errorTrackingList.add(errorTracking);
             beneficiaryExists = false;
-        } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().length() > 30) {
+        } else if (!beneficiaryValidator.validateFinancialAddress(beneficiary.getFinancialAddress())) {
             ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
                     "Financial Address Invalid");
             errorTrackingList.add(errorTracking);

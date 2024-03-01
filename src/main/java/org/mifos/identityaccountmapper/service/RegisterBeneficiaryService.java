@@ -1,11 +1,5 @@
 package org.mifos.identityaccountmapper.service;
 
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.ACCOUNT_ID;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.MSISDN;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VIRTUAL_ADDRESS;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VOUCHER;
-import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.WALLET_ID;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
@@ -114,34 +108,24 @@ public class RegisterBeneficiaryService {
                 this.errorTrackingRepository.save(errorTracking);
             } else {
                 logger.info("payee Identity {} {}", beneficiary.getPayeeIdentity(), beneficiary.getPayeeIdentity().length());
-                if (beneficiary.getPayeeIdentity() == null || beneficiary.getPayeeIdentity().isEmpty()
-                        || (!beneficiary.getPayeeIdentity().isEmpty() && beneficiary.getPayeeIdentity().length() > 12)) {
+                if (!beneficiaryValidator.validatePayeeIdentity(beneficiary.getPayeeIdentity())) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Payee Identity Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
-                } else if (beneficiary.getPaymentModality() != null && !(beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
-                        || beneficiary.getPaymentModality().equals(MSISDN.getValue())
-                        || beneficiary.getPaymentModality().equals(VIRTUAL_ADDRESS.getValue())
-                        || beneficiary.getPaymentModality().equals(WALLET_ID.getValue())
-                        || beneficiary.getPaymentModality().equals(VOUCHER.getValue()))) {
+                } else if (!beneficiaryValidator.validatePayeeIdentity(beneficiary.getPayeeIdentity())) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Payee Modality Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
-                } else if ((beneficiary.getPaymentModality() != null
-                        && (beneficiary.getPaymentModality().equals(ACCOUNT_ID.getValue())
-                                || beneficiary.getPaymentModality().equals(MSISDN.getValue())
-                                || beneficiary.getPaymentModality().equals(WALLET_ID.getValue()))
-                        && ((beneficiary.getBankingInstitutionCode() == null || beneficiary.getBankingInstitutionCode().isEmpty())
-                                || ((beneficiary.getBankingInstitutionCode() != null
-                                        && beneficiary.getBankingInstitutionCode().length() > 11))))) {
+                } else if (!beneficiaryValidator.validateBankingInstitutionCode(beneficiary.getPaymentModality(),
+                        beneficiary.getBankingInstitutionCode())) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Banking Institution Code Invalid");
                     errorTrackingList.add(errorTracking);
                     beneficiaryExists = true;
 
-                } else if (beneficiary.getFinancialAddress() != null && beneficiary.getFinancialAddress().length() > 30) {
+                } else if (!beneficiaryValidator.validateFinancialAddress(beneficiary.getFinancialAddress())) {
                     ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
                             beneficiary.getPaymentModality(), "Financial Address Invalid");
                     errorTrackingList.add(errorTracking);

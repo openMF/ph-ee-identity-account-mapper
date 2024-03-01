@@ -1,6 +1,11 @@
 package org.mifos.identityaccountmapper.service;
 
 import static org.mifos.connector.common.exception.PaymentHubError.ExtValidationError;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.ACCOUNT_ID;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.MSISDN;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VIRTUAL_ADDRESS;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.VOUCHER;
+import static org.mifos.identityaccountmapper.util.PaymentModalityEnum.WALLET_ID;
 
 import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.connector.common.exception.PaymentHubErrorCategory;
@@ -43,5 +48,41 @@ public class BeneficiaryValidator {
         }
 
         return null;
+    }
+
+    public Boolean validatePaymentModality(String paymentModality) {
+        if (paymentModality != null && !(paymentModality.equals(ACCOUNT_ID.getValue()) || paymentModality.equals(MSISDN.getValue())
+                || paymentModality.equals(VIRTUAL_ADDRESS.getValue()) || paymentModality.equals(WALLET_ID.getValue())
+                || paymentModality.equals(VOUCHER.getValue()))) {
+            return false;
+        }
+        return true;
+
+    }
+
+    public Boolean validateBankingInstitutionCode(String paymentModality, String bankingInstitutionCode) {
+        if ((paymentModality != null
+                && (paymentModality.equals(ACCOUNT_ID.getValue()) || paymentModality.equals(MSISDN.getValue())
+                        || paymentModality.equals(WALLET_ID.getValue()))
+                && ((bankingInstitutionCode == null || bankingInstitutionCode.isEmpty())
+                        || ((bankingInstitutionCode != null && bankingInstitutionCode.length() > 11))))) {
+            return false;
+        }
+        return true;
+
+    }
+
+    public Boolean validatePayeeIdentity(String payeeIdentity) {
+        if (payeeIdentity == null || payeeIdentity.isEmpty() || (!payeeIdentity.isEmpty() && payeeIdentity.length() > 12)) {
+            return false;
+        }
+        return true;
+    }
+
+    public Boolean validateFinancialAddress(String financialAddress) {
+        if (financialAddress != null && financialAddress.length() > 30) {
+            return false;
+        }
+        return true;
     }
 }
