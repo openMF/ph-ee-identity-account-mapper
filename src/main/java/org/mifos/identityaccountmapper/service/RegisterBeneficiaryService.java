@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
 import org.mifos.identityaccountmapper.data.RequestDTO;
@@ -20,7 +21,6 @@ import org.mifos.identityaccountmapper.util.UniqueIDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,6 +32,8 @@ public class RegisterBeneficiaryService {
     private final SendCallbackService sendCallbackService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(RegisterBeneficiaryService.class);
+    @Autowired
+    private BeneficiaryValidator beneficiaryValidator;
 
     @Autowired
     public RegisterBeneficiaryService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
@@ -43,19 +45,22 @@ public class RegisterBeneficiaryService {
         this.objectMapper = objectMapper;
     }
 
-    @Async("asyncExecutor")
-    public void registerBeneficiary(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
-        List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
-        List<ErrorTracking> errorTrackingsList = new ArrayList<>();
+    public PhErrorDTO registerBeneficiary(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
+        PhErrorDTO phErrorDTO = beneficiaryValidator.validateCreateBeneficiary(requestBody);
+        if (phErrorDTO == null) {
+            List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
+            List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
-        validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
-        CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
+            validateAndSaveBeneficiaries(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
+            CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
 
-        try {
-            sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
-        } catch (JsonProcessingException e) {
-            logger.error(e.getMessage());
+            try {
+                sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
+            } catch (JsonProcessingException e) {
+                logger.error(e.getMessage());
+            }
         }
+        return phErrorDTO;
     }
 
     @Transactional
@@ -101,6 +106,31 @@ public class RegisterBeneficiaryService {
                         "Beneficiary already registered");
                 errorTrackingList.add(errorTracking);
                 this.errorTrackingRepository.save(errorTracking);
+            } else {
+                logger.info("payee Identity {} {}", beneficiary.getPayeeIdentity(), beneficiary.getPayeeIdentity().length());
+                if (!beneficiaryValidator.validatePayeeIdentity(beneficiary.getPayeeIdentity())) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Payee Identity Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+                } else if (!beneficiaryValidator.validatePayeeIdentity(beneficiary.getPayeeIdentity())) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Payee Modality Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+                } else if (!beneficiaryValidator.validateBankingInstitutionCode(beneficiary.getPaymentModality(),
+                        beneficiary.getBankingInstitutionCode())) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Banking Institution Code Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+
+                } else if (!beneficiaryValidator.validateFinancialAddress(beneficiary.getFinancialAddress())) {
+                    ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(),
+                            beneficiary.getPaymentModality(), "Financial Address Invalid");
+                    errorTrackingList.add(errorTracking);
+                    beneficiaryExists = true;
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());

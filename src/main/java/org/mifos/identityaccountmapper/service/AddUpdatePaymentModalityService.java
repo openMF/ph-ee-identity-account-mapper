@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
 import org.mifos.identityaccountmapper.data.RequestDTO;
@@ -31,6 +32,8 @@ public class AddUpdatePaymentModalityService {
     private final SendCallbackService sendCallbackService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(AddUpdatePaymentModalityService.class);
+    @Autowired
+    private BeneficiaryValidator beneficiaryValidator;
 
     @Autowired
     public AddUpdatePaymentModalityService(MasterRepository masterRepository, ErrorTrackingRepository errorTrackingRepository,
@@ -51,13 +54,23 @@ public class AddUpdatePaymentModalityService {
         sendCallback(errorTrackingsList, requestBody.getRequestID(), callbackURL);
     }
 
-    @Async("asyncExecutor")
-    public void updatePaymentModality(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
-        List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
-        List<ErrorTracking> errorTrackingsList = new ArrayList<>();
+    public PhErrorDTO updatePaymentModality(String callbackURL, RequestDTO requestBody, String registeringInstitutionId) {
+        PhErrorDTO phErrorDTO = beneficiaryValidator.validateCreateBeneficiary(requestBody);
+        if (phErrorDTO == null) {
+            List<BeneficiaryDTO> beneficiaryList = requestBody.getBeneficiaries();
+            List<ErrorTracking> errorTrackingsList = new ArrayList<>();
 
-        validateAndUpdatePaymentModality(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
-        sendCallback(errorTrackingsList, requestBody.getRequestID(), callbackURL);
+            validateAndUpdatePaymentModality(beneficiaryList, requestBody, errorTrackingsList, registeringInstitutionId);
+            CallbackRequestDTO callbackRequest = sendCallbackService.createRequestBody(errorTrackingsList, requestBody.getRequestID());
+
+            try {
+                sendCallbackService.sendCallback(objectMapper.writeValueAsString(callbackRequest), callbackURL);
+            } catch (JsonProcessingException e) {
+                logger.error(e.getMessage());
+            }
+
+        }
+        return phErrorDTO;
     }
 
     private void sendCallback(List<ErrorTracking> errorTrackingList, String requestId, String callbackURL) {
@@ -157,6 +170,23 @@ public class AddUpdatePaymentModalityService {
                 registeringInstitutionId);
         if (!beneficiaryExists) {
             saveError(requestID, beneficiary, "Beneficiary is not registered", errorTrackingList);
+        } else if (!beneficiaryValidator.validateBankingInstitutionCode(beneficiary.getPaymentModality(),
+                beneficiary.getBankingInstitutionCode())) {
+            ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                    "Banking Institution Code Invalid");
+            errorTrackingList.add(errorTracking);
+            beneficiaryExists = false;
+
+        } else if (!beneficiaryValidator.validatePaymentModality(beneficiary.getPaymentModality())) {
+            ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                    "Payment Modality Invalid");
+            errorTrackingList.add(errorTracking);
+            beneficiaryExists = false;
+        } else if (!beneficiaryValidator.validateFinancialAddress(beneficiary.getFinancialAddress())) {
+            ErrorTracking errorTracking = new ErrorTracking(requestID, beneficiary.getPayeeIdentity(), beneficiary.getPaymentModality(),
+                    "Financial Address Invalid");
+            errorTrackingList.add(errorTracking);
+            beneficiaryExists = false;
         } else {
             IdentityDetails identityDetails = masterRepository
                     .findByPayeeIdentityAndRegisteringInstitutionId(beneficiary.getPayeeIdentity(), registeringInstitutionId)
