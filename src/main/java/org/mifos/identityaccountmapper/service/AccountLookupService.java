@@ -119,6 +119,7 @@ public class AccountLookupService {
 
     public boolean syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
             String registeringInstitutionId) {
+        logger.info("Inside sync account lookup");
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
                 .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
@@ -127,6 +128,7 @@ public class AccountLookupService {
                     callbackURL);
             return false;
         }
+        logger.info("Before helper function");
         return accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
     }
 
