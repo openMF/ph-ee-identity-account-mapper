@@ -122,7 +122,7 @@ public class AccountLookupService {
     }
 
     public Pair<Boolean, AccountLookupResponseDTO> syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality,
-            String requestId, String registeringInstitutionId) {
+            String requestId, String registeringInstitutionId)throws JsonProcessingException {
         logger.info("Inside sync account lookup");
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
@@ -136,6 +136,7 @@ public class AccountLookupService {
         boolean accountValidate = accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
         AccountLookupResponseDTO responseDTO = accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId,
                 registeringInstitutionId, accountValidate);
+        logger.info(objectMapper.writeValueAsString(responseDTO));
         return Pair.of(accountValidate, responseDTO);
     }
 
