@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.mifos.identityaccountmapper.data.AccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BatchAccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -119,8 +121,8 @@ public class AccountLookupService {
         sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
     }
 
-    public boolean syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
-            String registeringInstitutionId) {
+    public Pair<Boolean, AccountLookupResponseDTO> syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality,
+            String requestId, String registeringInstitutionId) {
         logger.info("Inside sync account lookup");
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
@@ -128,10 +130,13 @@ public class AccountLookupService {
         if (!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)) {
             sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.",
                     callbackURL);
-            return false;
+            return Pair.of(false, null);
         }
         logger.info("Before helper function");
-        return accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
+        boolean accountValidate = accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
+        AccountLookupResponseDTO responseDTO = accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId,
+                registeringInstitutionId, accountValidate);
+        return Pair.of(accountValidate, responseDTO);
     }
 
     public boolean accountlookupHelper(String callbackURL, String payeeIdentity, String paymentModality, IdentityDetails identityDetails) {
@@ -151,7 +156,7 @@ public class AccountLookupService {
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
         }
-        logger.info("account validate {}",accountValidate);
+        logger.info("account validate {}", accountValidate);
         return Boolean.TRUE.equals(accountValidate);
     }
 
