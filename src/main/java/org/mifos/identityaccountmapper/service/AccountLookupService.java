@@ -105,6 +105,7 @@ public class AccountLookupService {
     @Async("asyncExecutor")
     public void accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
             String registeringInstitutionId) {
+        logger.info("Inside Async function");
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
                 .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
@@ -113,6 +114,7 @@ public class AccountLookupService {
                     callbackURL);
             return;
         }
+        logger.info("Before helper function");
         Boolean accountValidate = accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
         sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
     }
@@ -149,6 +151,7 @@ public class AccountLookupService {
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
         }
+        logger.info("account validate {}",accountValidate);
         return Boolean.TRUE.equals(accountValidate);
     }
 

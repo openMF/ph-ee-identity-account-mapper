@@ -38,7 +38,7 @@ public class AccountLookupApiController implements AccountLookupApi {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDTO);
             } else {
                 ResponseDTO responseDTO = new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestId);
-                return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
+                return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
             }
         }
 
