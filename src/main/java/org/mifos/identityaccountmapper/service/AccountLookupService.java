@@ -113,6 +113,25 @@ public class AccountLookupService {
                     callbackURL);
             return;
         }
+        Boolean accountValidate = accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
+        sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
+    }
+
+    public boolean syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
+            String registeringInstitutionId) {
+        IdentityDetails identityDetails = masterRepository
+                .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
+                .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
+        if (!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)) {
+            sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.",
+                    callbackURL);
+            return false;
+        }
+        return accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
+    }
+
+    public boolean accountlookupHelper(String callbackURL, String payeeIdentity, String paymentModality, IdentityDetails identityDetails) {
+
         PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
         if (!paymentModalityCodes.contains(paymentModality)) {
             paymentModality = getValueByKey(paymentModality);
@@ -128,9 +147,7 @@ public class AccountLookupService {
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
         }
-
-        sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
-
+        return Boolean.TRUE.equals(accountValidate);
     }
 
     public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId,

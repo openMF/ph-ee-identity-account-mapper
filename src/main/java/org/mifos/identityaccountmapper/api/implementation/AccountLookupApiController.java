@@ -21,7 +21,27 @@ public class AccountLookupApiController implements AccountLookupApi {
 
     @Override
     public ResponseEntity<ResponseDTO> accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
-            String registeringInstitutionId) {
+            String registeringInstitutionId, Boolean isExternalLookup) {
+
+        if (!isExternalLookup) {
+            Boolean accountLookupSuccess;
+            try {
+                accountLookupSuccess = accountLookupService.syncAccountLookup(callbackURL, payeeIdentity, paymentModality, requestId,
+                        registeringInstitutionId);
+            } catch (Exception e) {
+                ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
+            }
+
+            if (!accountLookupSuccess) {
+                ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDTO);
+            } else {
+                ResponseDTO responseDTO = new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestId);
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
+            }
+        }
+
         try {
             accountLookupService.accountLookup(callbackURL, payeeIdentity, paymentModality, requestId, registeringInstitutionId);
         } catch (Exception e) {
