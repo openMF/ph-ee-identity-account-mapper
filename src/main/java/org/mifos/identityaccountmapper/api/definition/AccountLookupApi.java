@@ -14,7 +14,7 @@ public interface AccountLookupApi {
     @Operation(summary = "Account Lookup API")
     @GetMapping("/beneficiary")
 
-    ResponseEntity<Object> accountLookup(@RequestHeader(value = "X-CallbackURL") String callbackURL,
+    <T> ResponseEntity<T> accountLookup(@RequestHeader(value = "X-CallbackURL") String callbackURL,
             @RequestParam(value = "payeeIdentity") String payeeIdentity, @RequestParam(value = "paymentModality") String paymentModality,
             @RequestParam(value = "requestId") String requestId,
             @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId)

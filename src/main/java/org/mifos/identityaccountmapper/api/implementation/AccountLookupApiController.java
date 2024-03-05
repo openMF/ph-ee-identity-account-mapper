@@ -26,7 +26,7 @@ public class AccountLookupApiController implements AccountLookupApi {
     Boolean isExternalLookup;
 
     @Override
-    public ResponseEntity<Object> accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
+    public <T> ResponseEntity<T> accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
             String registeringInstitutionId) {
 
         if (!isExternalLookup) {
@@ -36,14 +36,14 @@ public class AccountLookupApiController implements AccountLookupApi {
                         registeringInstitutionId);
             } catch (Exception e) {
                 ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body((T) responseDTO);
             }
 
             if (!response.getFirst()) {
                 ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDTO);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body((T) responseDTO);
             } else {
-                return ResponseEntity.status(HttpStatus.OK).body(response.getSecond());
+                return ResponseEntity.status(HttpStatus.OK).body((T) response.getSecond());
             }
         }
 
@@ -51,9 +51,9 @@ public class AccountLookupApiController implements AccountLookupApi {
             accountLookupService.accountLookup(callbackURL, payeeIdentity, paymentModality, requestId, registeringInstitutionId);
         } catch (Exception e) {
             ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body((T) responseDTO);
         }
         ResponseDTO responseDTO = new ResponseDTO(SUCCESS_RESPONSE_CODE.getValue(), SUCCESS_RESPONSE_MESSAGE.getValue(), requestId);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body((T) responseDTO);
     }
 }
