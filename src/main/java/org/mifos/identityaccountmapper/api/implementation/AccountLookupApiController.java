@@ -10,6 +10,7 @@ import org.mifos.identityaccountmapper.data.AccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.ResponseDTO;
 import org.mifos.identityaccountmapper.service.AccountLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,12 @@ public class AccountLookupApiController implements AccountLookupApi {
     @Autowired
     AccountLookupService accountLookupService;
 
+    @Value("${isExternalLookup}")
+    Boolean isExternalLookup;
+
     @Override
     public ResponseEntity<Object> accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
-            String registeringInstitutionId, Boolean isExternalLookup) {
+            String registeringInstitutionId) {
 
         if (!isExternalLookup) {
             Pair<Boolean, AccountLookupResponseDTO> response;

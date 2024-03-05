@@ -122,7 +122,7 @@ public class AccountLookupService {
     }
 
     public Pair<Boolean, AccountLookupResponseDTO> syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality,
-            String requestId, String registeringInstitutionId)throws JsonProcessingException {
+            String requestId, String registeringInstitutionId) throws JsonProcessingException {
         logger.info("Inside sync account lookup");
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)

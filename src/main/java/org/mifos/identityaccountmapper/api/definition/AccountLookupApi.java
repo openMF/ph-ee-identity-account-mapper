@@ -17,7 +17,7 @@ public interface AccountLookupApi {
     ResponseEntity<Object> accountLookup(@RequestHeader(value = "X-CallbackURL") String callbackURL,
             @RequestParam(value = "payeeIdentity") String payeeIdentity, @RequestParam(value = "paymentModality") String paymentModality,
             @RequestParam(value = "requestId") String requestId,
-            @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId,
-            @RequestHeader(value = "isExternalLookup") Boolean isExternalLookup) throws ExecutionException, InterruptedException;
+            @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId)
+            throws ExecutionException, InterruptedException;
 
 }
