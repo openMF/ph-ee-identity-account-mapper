@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.mifos.identityaccountmapper.data.AccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BatchAccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -105,6 +107,7 @@ public class AccountLookupService {
     @Async("asyncExecutor")
     public void accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
             String registeringInstitutionId) {
+        logger.info("Inside Async function");
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
                 .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
@@ -113,6 +116,32 @@ public class AccountLookupService {
                     callbackURL);
             return;
         }
+        logger.info("Before helper function");
+        Boolean accountValidate = accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
+        sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
+    }
+
+    public Pair<Boolean, AccountLookupResponseDTO> syncAccountLookup(String callbackURL, String payeeIdentity, String paymentModality,
+            String requestId, String registeringInstitutionId) throws JsonProcessingException {
+        logger.info("Inside sync account lookup");
+        IdentityDetails identityDetails = masterRepository
+                .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
+                .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
+        if (!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)) {
+            sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.",
+                    callbackURL);
+            return Pair.of(false, null);
+        }
+        logger.info("Before helper function");
+        boolean accountValidate = accountlookupHelper(callbackURL, payeeIdentity, paymentModality, identityDetails);
+        AccountLookupResponseDTO responseDTO = accountLookupReadService.lookup(payeeIdentity, callbackURL, requestId,
+                registeringInstitutionId, accountValidate);
+        logger.info(objectMapper.writeValueAsString(responseDTO));
+        return Pair.of(accountValidate, responseDTO);
+    }
+
+    public boolean accountlookupHelper(String callbackURL, String payeeIdentity, String paymentModality, IdentityDetails identityDetails) {
+
         PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
         if (!paymentModalityCodes.contains(paymentModality)) {
             paymentModality = getValueByKey(paymentModality);
@@ -128,9 +157,8 @@ public class AccountLookupService {
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
         }
-
-        sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
-
+        logger.info("account validate {}", accountValidate);
+        return Boolean.TRUE.equals(accountValidate);
     }
 
     public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId,
