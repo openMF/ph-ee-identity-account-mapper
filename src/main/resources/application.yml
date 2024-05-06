@@ -49,7 +49,7 @@ callback_enabled: false
 zeebe:
   client:
     max-execution-threads: 50
-    evenly-allocated-max-jobs: 1000
+    evenly-allocated-max-jobs: 100
     poll-interval: 10
   #    number-of-workers: 15
   #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
