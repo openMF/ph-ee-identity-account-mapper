@@ -37,7 +37,7 @@ public class AccountLookupReadService {
         this.objectMapper = objectMapper;
     }
 
-    @Cacheable(value = "accountLookupCache", key = "#payeeIdentity")
+    //@Cacheable(value = "accountLookupCache", key = "#payeeIdentity")
     public AccountLookupResponseDTO lookup(String payeeIdentity, String callbackURL, String requestId, String registeringInstitutionId,
             Boolean isValidated) {
         IdentityDetails identityDetails = null;
