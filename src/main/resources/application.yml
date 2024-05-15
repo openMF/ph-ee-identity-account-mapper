@@ -10,12 +10,12 @@ spring:
     show-sql: false
     generate-ddl: false
 
-  cache:
-    time_to_live: 3
-    time_to_idle: 3
-    max_entries_heap: 10
-    max_byte_off_heap: 10
-    max_byte_disk: 10
+  #cache:
+   # time_to_live: 3
+   # time_to_idle: 3
+   # max_entries_heap: 10
+   # max_byte_off_heap: 10
+   # max_byte_disk: 10
 
   datasource:
     url: jdbc:mysql:thin://operationsmysql:3306/identity_account_mapper

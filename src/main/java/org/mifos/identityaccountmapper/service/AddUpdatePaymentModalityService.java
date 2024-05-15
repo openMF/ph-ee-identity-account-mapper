@@ -19,7 +19,6 @@ import org.mifos.identityaccountmapper.repository.PaymentModalityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -94,7 +93,7 @@ public class AddUpdatePaymentModalityService {
     }
 
     @Transactional
-    @CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
+    // @CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
     public void updateModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList,
             String requestID, String payeeIdentity, String registeringInstitutionId) {
         try {
@@ -127,7 +126,7 @@ public class AddUpdatePaymentModalityService {
     }
 
     @Transactional
-    @CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
+    // @CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
     public void addModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList,
             String requestID, String payeeIdentity, String registeringInstitutionId) {
         try {
