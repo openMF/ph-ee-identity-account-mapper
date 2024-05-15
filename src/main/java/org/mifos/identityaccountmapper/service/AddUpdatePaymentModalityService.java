@@ -94,7 +94,7 @@ public class AddUpdatePaymentModalityService {
     }
 
     @Transactional
-    //@CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
+    @CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
     public void updateModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList,
             String requestID, String payeeIdentity, String registeringInstitutionId) {
         try {
@@ -127,7 +127,7 @@ public class AddUpdatePaymentModalityService {
     }
 
     @Transactional
-    //@CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
+    @CacheEvict(value = "accountLookupCache", key = "#payeeIdentity")
     public void addModalityDetails(BeneficiaryDTO beneficiary, Boolean beneficiaryExists, List<ErrorTracking> errorTrackingList,
             String requestID, String payeeIdentity, String registeringInstitutionId) {
         try {
