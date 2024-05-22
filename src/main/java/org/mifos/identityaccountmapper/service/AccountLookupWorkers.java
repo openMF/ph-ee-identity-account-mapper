@@ -5,10 +5,6 @@ import static org.mifos.identityaccountmapper.util.AccountMapperEnum.WORKER_ACCO
 import io.camunda.zeebe.client.ZeebeClient;
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import org.apache.camel.CamelContext;
-import org.apache.camel.Exchange;
-import org.apache.camel.ProducerTemplate;
-import org.apache.camel.support.DefaultExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +18,7 @@ public class AccountLookupWorkers {
 
     @Autowired
     private ZeebeClient zeebeClient;
-    @Autowired
-    private CamelContext camelContext;
-    @Autowired
-    private ProducerTemplate producerTemplate;
+
     @Value("${zeebe.client.evenly-allocated-max-jobs}")
     private int workerMaxJobs;
 
@@ -36,10 +29,7 @@ public class AccountLookupWorkers {
             logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> existingVariables = job.getVariablesAsMap();
 
-            Exchange exchange = new DefaultExchange(camelContext);
-
             logger.debug("Zeebe variables: {}", existingVariables);
-            producerTemplate.send("direct:send-account-lookup-callback", exchange);
 
             client.newCompleteCommand(job.getKey()).send();
         }).name(WORKER_ACCOUNT_LOOKUP_CALLBACK.getValue()).maxJobsActive(workerMaxJobs).open();

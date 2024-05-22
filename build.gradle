@@ -24,7 +24,6 @@ repositories {
     }
 }
 ext {
-    camelVersion = '3.18.1'
     zeebClientVersion = '8.1.23'
 }
 
@@ -52,13 +51,7 @@ dependencies {
     implementation 'javax.cache:cache-api:1.1.1'
     implementation 'org.mifos:ph-ee-id-account-validator-impl:0.0.6-SNAPSHOT'
     implementation("io.camunda:zeebe-client-java:$zeebClientVersion")
-    implementation "org.apache.camel.springboot:camel-spring-boot-starter:$camelVersion"
-    implementation "org.apache.camel:camel-undertow:$camelVersion"
-    implementation 'org.apache.camel.springboot:camel-jackson-starter:3.16.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.9'
-    implementation "org.apache.camel:camel-http:$camelVersion"
-    implementation "org.apache.camel:camel-endpointdsl:$camelVersion"
-    implementation "org.apache.camel:camel-jetty:$camelVersion"
     implementation("io.camunda:zeebe-client-java:$zeebClientVersion")
     implementation 'net.sf.ehcache:ehcache:2.10.6'
 }
