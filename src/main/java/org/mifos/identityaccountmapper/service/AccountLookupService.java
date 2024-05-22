@@ -143,21 +143,29 @@ public class AccountLookupService {
     public boolean accountlookupHelper(String callbackURL, String payeeIdentity, String paymentModality, IdentityDetails identityDetails) {
 
         PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
+
         if (!paymentModalityCodes.contains(paymentModality)) {
             paymentModality = getValueByKey(paymentModality);
         }
-        AccountValidationService accountValidationService = null;
+
+        AccountValidationService accountValidationService;
         try {
             accountValidationService = (AccountValidationService) this.applicationContext.getBean(accountValidatorConnector);
         } catch (NoSuchBeanDefinitionException ex) {
-            // Handle the case when the bean is not found in the application context
+            logger.error("AccountValidationService bean not found: {}", accountValidatorConnector, ex);
+            return false;
         }
-        Boolean accountValidate = null;
-        if (accountValidationService != null) {
+
+        Boolean accountValidate;
+        try {
             accountValidate = accountValidationService.validateAccount(paymentModalityDetails.getDestinationAccount(),
                     paymentModalityDetails.getInstitutionCode(), fetchPaymentModality(paymentModality), payeeIdentity, callbackURL);
+        } catch (Exception ex) {
+            logger.error("Error during account validation", ex);
+            return false;
         }
-        logger.info("account validate {}", accountValidate);
+
+        logger.info("Account validate result: {}", accountValidate);
         return Boolean.TRUE.equals(accountValidate);
     }
 

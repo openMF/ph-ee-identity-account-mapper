@@ -10,18 +10,28 @@ spring:
     show-sql: false
     generate-ddl: false
 
-  #cache:
-   # time_to_live: 3
-   # time_to_idle: 3
-   # max_entries_heap: 10
-   # max_byte_off_heap: 10
-   # max_byte_disk: 10
+  cache:
+    time_to_live: 3
+    time_to_idle: 3
+    max_entries_heap: 10
+    max_byte_off_heap: 10
+    max_byte_disk: 10
 
   datasource:
-    url: jdbc:mysql:thin://operationsmysql:3306/identity_account_mapper
+    url: jdbc:mysql://operationsmysql:3306/identity_account_mapper
     username: root
     password: mysql
-    driver-class-name: org.drizzle.jdbc.DrizzleDriver
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  hikari:
+    minimum-idle: 5
+    maximum-pool-size: 20
+    pool-name: MyHikariCP
+    connection-test-query: SELECT 1
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    leak-detection-threshold: 2000
+    validation-timeout: 5000
 
 logging:
   level:
