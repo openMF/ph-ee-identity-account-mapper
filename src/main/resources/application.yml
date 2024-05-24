@@ -11,26 +11,36 @@ spring:
     generate-ddl: false
 
   cache:
-    time_to_live: 30
-    time_to_idle: 30
-    max_entries_heap: 1000
+    time_to_live: 3
+    time_to_idle: 3
+    max_entries_heap: 10
     max_byte_off_heap: 10
     max_byte_disk: 10
 
   datasource:
-    url: jdbc:mysql:thin://operationsmysql:3306/identity_account_mapper
+    url: jdbc:mysql://operationsmysql:3306/identity_account_mapper
     username: root
     password: mysql
-    driver-class-name: org.drizzle.jdbc.DrizzleDriver
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  hikari:
+    minimum-idle: 5
+    maximum-pool-size: 20
+    pool-name: MyHikariCP
+    connection-test-query: SELECT 1
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    leak-detection-threshold: 2000
+    validation-timeout: 5000
 
 logging:
   level:
     ROOT: DEBUG
 
 async:
-  core-pool-size: 10
-  max-pool-size: 10
-  queue-capacity: 100
+  core-pool-size: 5
+  max-pool-size: 5
+  queue-capacity: 50
 
 gsma_connector:
   contactpoint: "https://ams-mifos.sandbox.fynarfin.io"
@@ -49,7 +59,7 @@ callback_enabled: false
 zeebe:
   client:
     max-execution-threads: 50
-    evenly-allocated-max-jobs: 1000
+    evenly-allocated-max-jobs: 100
     poll-interval: 10
   #    number-of-workers: 15
   #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
