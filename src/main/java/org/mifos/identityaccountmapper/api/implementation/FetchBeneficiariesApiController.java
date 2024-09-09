@@ -29,13 +29,17 @@ public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
     }
 
     @Override
-    public ResponseEntity<Page<FetchBeneficiariesResponseDTO>> fetchAllBeneficiary(String registeringInstitutionId, Integer page,
+    public ResponseEntity<Page<FetchBeneficiariesResponseDTO>> fetchAllBeneficiary(String registeringInstitutionId,String bankingInstitutionCode, Integer page,
             Integer pageSize) throws ExecutionException, InterruptedException {
-        if (StringUtils.isBlank(registeringInstitutionId)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        Page<FetchBeneficiariesResponseDTO> fetchBeneficiariesResponseDTO;
+
+        if (StringUtils.isNotBlank(registeringInstitutionId)) {
+            fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchAllBeneficiariesByRegisteringInstitution(page, pageSize, registeringInstitutionId);
+        } else if (StringUtils.isNotBlank(bankingInstitutionCode)) {
+            fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchAllBeneficiariesByBankingInstitution(page, pageSize, bankingInstitutionCode);
+        } else {
+            fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchAllBeneficiaries(page, pageSize);
         }
-        Page<FetchBeneficiariesResponseDTO> fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchAllBeneficiaries(page, pageSize,
-                registeringInstitutionId);
         return ResponseEntity.status(HttpStatus.OK).body(fetchBeneficiariesResponseDTO);
     }
 }
