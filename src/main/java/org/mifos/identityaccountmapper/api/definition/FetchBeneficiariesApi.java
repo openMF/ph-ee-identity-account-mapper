@@ -18,7 +18,8 @@ public interface FetchBeneficiariesApi {
 
     @GetMapping("/beneficiaries")
     ResponseEntity<Page<FetchBeneficiariesResponseDTO>> fetchAllBeneficiary(
-            @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId,
+            @RequestHeader(value = "X-Registering-Institution-ID", required = false) String registeringInstitutionId,
+            @RequestHeader(value = "X-Banking-Institution-Code", required = false) String bankingInstitutionCode,
             @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
             @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize)
             throws ExecutionException, InterruptedException;
