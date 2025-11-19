@@ -32,13 +32,20 @@ async:
   max-pool-size: 10
   queue-capacity: 100
 
+# Original gsma_connector config - commented out
+# gsma_connector:
+#   contactpoint: "https://ams-mifos.sandbox.fynarfin.io"
+#   endpoint:
+#     account-status: "/ams/accounts/identifierType/identifierId/status"
+
+# gazelle gsma_connector config internal to cluster 
 gsma_connector:
-  contactpoint: "https://ams-mifos.sandbox.fynarfin.io"
+  contactpoint: "http://ph-ee-connector-ams-mifos" 
   endpoint:
     account-status: "/ams/accounts/identifierType/identifierId/status"
 
 mojaloop-connector:
-  contactpoint: "http://account-lookup-service.sandbox.fynarfin.io"
+  contactpoint:  http://vnextadmin.mifos.gazelle.localhost/_interop
   endpoint:
     get-parties: "/parties/"
     callback-register: "/participants/fsp/endpoints"

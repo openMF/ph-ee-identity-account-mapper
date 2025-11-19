@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 public class RegisterBeneficiaryApiController implements RegisterBeneficiaryApi {
 
@@ -26,12 +28,14 @@ public class RegisterBeneficiaryApiController implements RegisterBeneficiaryApi 
     @Override
     public <T> ResponseEntity<T> registerBeneficiary(String callbackURL, String registeringInstitutionId, RequestDTO requestBody)
             throws ExecutionException, InterruptedException, JsonProcessingException {
+        log.info("TDDEBUG> Inside beneficiary lookup controller ");
         try {
             PhErrorDTO phErrorDTO = registerBeneficiaryService.registerBeneficiary(callbackURL, requestBody, registeringInstitutionId);
             if (phErrorDTO != null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body((T) phErrorDTO);
             }
         } catch (Exception e) {
+            log.error("Internal Server Error in registerBeneficiary for requestID: {}", requestBody.getRequestID(), e); // <-- ADD THIS LINE
             ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(),
                     requestBody.getRequestID());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body((T) responseDTO);

@@ -25,7 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 public class AccountLookupCallbackController implements AccountLookupCallback {
 
@@ -44,6 +46,8 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
         String error = null;
         String transactionId = null;
         AccountLookupResponseDTO accountLookupResponseDTO = null;
+        log.info("TDDEBUG> Inside account lookup CALLBACK controller");
+        log.info("TDDEBUG> requestBody: " + requestBody);
         try {
             logger.info(requestBody);
             accountLookupResponseDTO = objectMapper.readValue(requestBody, AccountLookupResponseDTO.class);
@@ -52,6 +56,8 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
             variables.put(PAYEE_PARTY_ID_TYPE, accountLookupResponseDTO.getPaymentModalityList().get(0).getPaymentModality());
             variables.put(PARTY_LOOKUP_FSP_ID, accountLookupResponseDTO.getPaymentModalityList().get(0).getBankingInstitutionCode());
             transactionId = accountLookupResponseDTO.getRequestId();
+            log.info("TDDEBUG> transactionId: " + transactionId);
+            log.info("variables set: " + variables.toString());
             Boolean isValidated = accountLookupResponseDTO.getIsValidated();
             if (!isValidated) {
                 variables.put(ACCOUNT_LOOKUP_FAILED, true);
@@ -75,6 +81,7 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
         Map<String, Object> variables = new HashMap<>();
         String error = null;
         String transactionId = null;
+        log.info("TDDEBUG> Inside batch account lookup CALLBACK controller");
         // String response = exchange.getIn().getBody(String.class);
         BatchAccountLookupResponseDTO batchAccountLookupResponseDTO = null;
         try {

@@ -15,6 +15,7 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 repositories {
+    mavenLocal()  // Add this line
     mavenCentral()
     maven { url "https://repo.spring.io/libs-release" }
     maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }

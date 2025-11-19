@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
 
@@ -20,7 +23,9 @@ public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
     @Override
     public ResponseEntity<FetchBeneficiariesResponseDTO> fetchBeneficiary(String payeeIdentity, String registeringInstitutionId)
             throws ExecutionException, InterruptedException {
+        log.info("TDDEBUG> Inside fetch beneficiary  controller");
         if (StringUtils.isBlank(registeringInstitutionId)) {
+            log.info("TDDEBUG> regeristeringInstitutionId is blank");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         FetchBeneficiariesResponseDTO fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchBeneficiary(payeeIdentity,
@@ -31,7 +36,9 @@ public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
     @Override
     public ResponseEntity<Page<FetchBeneficiariesResponseDTO>> fetchAllBeneficiary(String registeringInstitutionId, Integer page,
             Integer pageSize) throws ExecutionException, InterruptedException {
+        log.info("TDDEBUG> Inside fetch all beneficiaries controller");
         if (StringUtils.isBlank(registeringInstitutionId)) {
+            log.info("TDDEBUG> regeristeringInstitutionId is blank");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         Page<FetchBeneficiariesResponseDTO> fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchAllBeneficiaries(page, pageSize,

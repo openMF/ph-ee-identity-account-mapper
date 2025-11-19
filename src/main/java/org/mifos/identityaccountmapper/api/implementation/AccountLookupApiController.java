@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 public class AccountLookupApiController implements AccountLookupApi {
 
@@ -22,7 +24,11 @@ public class AccountLookupApiController implements AccountLookupApi {
     @Override
     public ResponseEntity<ResponseDTO> accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
             String registeringInstitutionId) {
+        log.info("TDDEBUG> Inside account lookup API controller");
         try {
+            log.info("TDDEBUG> Calling account lookup service from API controller callbackURL: " + callbackURL + ", payeeIdentity: " + payeeIdentity
+                    + ", paymentModality: " + paymentModality + ", requestId: " + requestId + ", registeringInstitutionId: "
+                    + registeringInstitutionId );
             accountLookupService.accountLookup(callbackURL, payeeIdentity, paymentModality, requestId, registeringInstitutionId);
         } catch (Exception e) {
             ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(), requestId);
