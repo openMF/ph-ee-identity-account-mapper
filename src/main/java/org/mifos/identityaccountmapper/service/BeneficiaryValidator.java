@@ -73,7 +73,7 @@ public class BeneficiaryValidator {
     }
 
     public Boolean validatePayeeIdentity(String payeeIdentity) {
-        if (payeeIdentity == null || payeeIdentity.isEmpty() || (!payeeIdentity.isEmpty() && payeeIdentity.length() > 12)) {
+        if (payeeIdentity == null || payeeIdentity.isEmpty() || (!payeeIdentity.isEmpty() && payeeIdentity.length() > 20)) {
             return false;
         }
         return true;
