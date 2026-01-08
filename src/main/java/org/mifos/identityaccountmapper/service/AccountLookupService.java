@@ -169,10 +169,10 @@ public class AccountLookupService {
             return false;
         }
 
-        log.info("TDDEBUG> Account validation result: " + accountValidate);
-        log.info("TDDEBUG> about to send account callback to Callback URL: " + callbackURL);
-        sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
-
+        // log.info("TDDEBUG> Account validation result: " + accountValidate);
+        // log.info("TDDEBUG> about to send account callback to Callback URL: " + callbackURL);
+        // sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
+        return true; 
     }
 
     public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId,

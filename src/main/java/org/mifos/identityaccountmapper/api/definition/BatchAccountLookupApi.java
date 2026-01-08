@@ -12,6 +12,6 @@ public interface BatchAccountLookupApi {
 
     @PostMapping("/accountLookup")
     ResponseEntity<ResponseDTO> batchAccountLookup(@RequestHeader(value = "X-CallbackURL") String callbackURL,
-            @RequestBody RequestDTO requestBody, @RequestHeader(value = "X-Registering-Institution-ID") String registeringInstitutionId)
+            @RequestBody RequestDTO requestBody, @RequestHeader(value = "X-Registering-Institution-ID", required = false) String registeringInstitutionId)
             throws ExecutionException, InterruptedException;
 }
