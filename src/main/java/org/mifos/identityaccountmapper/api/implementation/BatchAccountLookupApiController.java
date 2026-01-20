@@ -6,6 +6,7 @@ import static org.mifos.identityaccountmapper.util.AccountMapperEnum.SUCCESS_RES
 import static org.mifos.identityaccountmapper.util.AccountMapperEnum.SUCCESS_RESPONSE_MESSAGE;
 
 import java.util.concurrent.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import org.mifos.identityaccountmapper.api.definition.BatchAccountLookupApi;
 import org.mifos.identityaccountmapper.data.RequestDTO;
 import org.mifos.identityaccountmapper.data.ResponseDTO;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController

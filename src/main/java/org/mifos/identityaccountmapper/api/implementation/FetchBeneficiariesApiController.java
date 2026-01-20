@@ -1,6 +1,7 @@
 package org.mifos.identityaccountmapper.api.implementation;
 
 import java.util.concurrent.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mifos.identityaccountmapper.api.definition.FetchBeneficiariesApi;
 import org.mifos.identityaccountmapper.data.FetchBeneficiariesResponseDTO;
@@ -10,8 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
