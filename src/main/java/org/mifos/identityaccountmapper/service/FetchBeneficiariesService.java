@@ -1,6 +1,8 @@
 package org.mifos.identityaccountmapper.service;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.mifos.identityaccountmapper.data.FetchBeneficiariesResponseDTO;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
 import org.mifos.identityaccountmapper.domain.PaymentModalityDetails;
@@ -37,26 +39,43 @@ public class FetchBeneficiariesService {
                 paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode());
     }
 
-    public Page<FetchBeneficiariesResponseDTO> fetchAllBeneficiaries(int page, int pageSize, String registeringInstitutionId) {
+    public Page<FetchBeneficiariesResponseDTO> fetchAllBeneficiaries(int page, int pageSize) {
         Pageable pageRequest = PageRequest.of(page, pageSize);
-
-        Page<IdentityDetails> identityPage = masterRepository.findByRegisteringInstitutionId(registeringInstitutionId, pageRequest);
-
+        Page<IdentityDetails> identityPage = masterRepository.findAll(pageRequest);
         return identityPage.map(identityDetails -> {
-            PaymentModalityDetails paymentModalityDetails = null;
-            if (identityDetails != null) {
-                List<PaymentModalityDetails> paymentModalities = paymentModalityRepository.findByMasterId(identityDetails.getMasterId());
-                if (!paymentModalities.isEmpty()) {
-                    paymentModalityDetails = paymentModalities.get(0);
-                }
-            }
-
-            return new FetchBeneficiariesResponseDTO(registeringInstitutionId,
-                    identityDetails != null ? identityDetails.getPayeeIdentity() : null,
-                    paymentModalityDetails != null ? paymentModalityDetails.getModality() : null,
-                    paymentModalityDetails != null ? paymentModalityDetails.getDestinationAccount() : null,
-                    paymentModalityDetails != null ? paymentModalityDetails.getInstitutionCode() : null);
+            PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
+            return new FetchBeneficiariesResponseDTO(identityDetails.getRegisteringInstitutionId(), identityDetails.getPayeeIdentity(),
+                    paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode());
         });
     }
+
+    public Page<FetchBeneficiariesResponseDTO> fetchAllBeneficiariesByRegisteringInstitution(int page, int pageSize, String registeringInstitutionId) {
+        Pageable pageRequest = PageRequest.of(page, pageSize);
+        Page<IdentityDetails> identityPage = masterRepository.findByRegisteringInstitutionId(registeringInstitutionId, pageRequest);
+        return identityPage.map(identityDetails -> {
+            PaymentModalityDetails paymentModalityDetails = paymentModalityRepository.findByMasterId(identityDetails.getMasterId()).get(0);
+            return new FetchBeneficiariesResponseDTO(registeringInstitutionId, identityDetails.getPayeeIdentity(),
+                    paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), paymentModalityDetails.getInstitutionCode());
+        });
+    }
+
+    public Page<FetchBeneficiariesResponseDTO> fetchAllBeneficiariesByBankingInstitution(int page, int pageSize, String bankingInstitutionCode) {
+        Pageable pageRequest = PageRequest.of(page, pageSize);
+        Page<PaymentModalityDetails> paymentModalityPage = paymentModalityRepository.findByInstitutionCode(bankingInstitutionCode, pageRequest);
+        System.out.println(paymentModalityPage);
+        return paymentModalityPage.map(paymentModalityDetails -> {
+            IdentityDetails identityDetails = masterRepository.findByMasterId(paymentModalityDetails.getMasterId()).get(0);
+            System.out.println(identityDetails.getPayeeIdentity());
+            System.out.println(paymentModalityDetails.getDestinationAccount());
+            return new FetchBeneficiariesResponseDTO(identityDetails.getRegisteringInstitutionId(), identityDetails.getPayeeIdentity(),
+                    paymentModalityDetails.getModality(), paymentModalityDetails.getDestinationAccount(), bankingInstitutionCode);
+
+    });
+
+
+}
+
+
+
 
 }

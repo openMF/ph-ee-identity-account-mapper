@@ -1,5 +1,6 @@
 package org.mifos.identityaccountmapper.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.mifos.identityaccountmapper.domain.IdentityDetails;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MasterRepository extends JpaRepository<IdentityDetails, Long>, JpaSpecificationExecutor<IdentityDetails> {
+
+    List<IdentityDetails> findByMasterId(String masterId);
 
     Optional<IdentityDetails> findByMasterIdAndRegisteringInstitutionId(String masterId, String registeringInstitutionId);
 
