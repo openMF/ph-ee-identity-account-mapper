@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Update Beneficiary | ID Mapper</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary:#004989;
+            --accent:#b4d575;
+            --error:#d32f2f;
+            --light:#f5f5f5;
+            --mid:#d7dada;
+            --dark:#353b3b;
+            --white:#fff;
+        }
+
+        * { box-sizing:border-box; margin:0; padding:0; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--light);
+            padding: 20px;
+            color: var(--dark);
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--white);
+            border: 1px solid var(--mid);
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            background: var(--primary);
+            color: #fff;
+            padding: 20px;
+        }
+
+        .header h1 { font-size: 1.5rem; font-weight: 500; }
+        .header p { font-size: 0.8rem; opacity: 0.9; }
+
+        .content { padding: 20px; }
+
+        .config-section {
+            background: #f0f4f8;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+
+        .form-section {
+            border: 1px solid var(--mid);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none; 
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--mid);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+
+        .dual-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .dual-grid { grid-template-columns: 1fr; }
+        }
+
+        .sub-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--mid);
+            border-radius: 2px;
+            margin-bottom: 15px;
+        }
+
+        input[readonly] {
+            background: #f9f9f9;
+            color: var(--primary);
+            font-weight: 500;
+            border-color: #eee;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-weight: 500;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fetch-btn {
+    background: var(--accent);
+    color: var(--dark);
+    height: 40px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+        .fetch-btn:hover { background: #a3c45f; }
+
+        .update-btn { background: var(--primary); color: #fff; flex: 1; }
+        .update-btn:hover { background: #003666; }
+        .update-btn:disabled { background: #ccc !important; cursor: not-allowed !important; opacity: 0.7; }
+
+        .required { color: var(--error); }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>ID Account Mapper</h1>
+        <p>Update Beneficiary Details</p>
+    </div>
+
+    <div class="content">
+
+        <div class="config-section">
+            <label class="sub-header">System Configuration</label>
+            <div class="config-grid">
+                <div>
+                    <label>API Gateway URL</label>
+                    <input id="apiUrl" value="http://localhost:8081">
+                </div>
+                <div>
+                    <label>Callback URL</label>
+                    <input id="callbackUrl" value="https://webhook.site/xxxx">
+                </div>
+                <div>
+                    <label>Institution Programme ID</label>
+                    <input id="institutionId" value="INST12345678">
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <label class="sub-header">Fetch Beneficiary</label>
+            <div class="config-grid">
+                <div>
+                    <label>Payee Identity <span class="required">*</span></label>
+                    <input id="searchPayee" placeholder="Enter ID to search...">
+                </div>
+                <div style="align-self:end">
+                    <button class="fetch-btn" onclick="fetchBeneficiary()">Fetch Details</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="updateForm" class="form-section">
+            <div class="section-header">
+                <strong>BENEFICIARY RECORDS</strong>
+            </div>
+
+            <div class="dual-grid">
+                <div>
+                    <div class="sub-header">Current (Read Only)</div>
+
+                    <label>Payee Identity</label>
+                    <input id="roPayee" readonly>
+
+                    <label>Payment Modality</label>
+                    <input id="roModality" readonly>
+
+                    <label>Financial Address</label>
+                    <input id="roAddress" readonly>
+
+                    <label>Banking Institution Code</label>
+                    <input id="roBbic" readonly>
+                </div>
+
+                <div>
+                    <div class="sub-header">Updated Values</div>
+
+                    <label>Payee Identity</label>
+                    <input id="payeeIdentity" readonly>
+
+                    <label>Payment Modality</label>
+                    <select id="paymentModality">
+                        <option value="00">Bank (Account ID)</option>
+                        <option value="01">Mobile Money (MSISDN)</option>
+                        <option value="02">Virtual Address</option>
+                        <option value="03">Wallet</option>
+                        <option value="04">Voucher</option>
+                    </select>
+
+                    <label>Financial Address</label>
+                    <input id="financialAddress">
+
+                    <label>Banking Institution Code</label>
+                    <input id="bbic">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="updateBtn" class="update-btn" onclick="updateBeneficiary()">Update Beneficiary</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const ModalityMap = {
+        "00": "Bank (Account ID)",
+        "01": "Mobile Money (MSISDN)",
+        "02": "Virtual Address",
+        "03": "Wallet",
+        "04": "Voucher"
+    };
+
+    function generateRequestId() {
+        return Math.floor(Math.random() * 1e12).toString().padStart(12, "0");
+    }
+
+    async function fetchBeneficiary() {
+        const query = document.getElementById('searchPayee').value.trim();
+        if (!query) {
+            alert("Please enter a Payee Identity to search.");
+            return;
+        }
+
+        try {
+            const res = await fetch(
+                `${apiUrl.value}/beneficiaries/${encodeURIComponent(query)}`,
+                {
+                    headers: { "X-Registering-Institution-ID": institutionId.value }
+                }
+            );
+
+            if (!res.ok) {
+                alert(`Fetch failed: Payee not found or system error (${res.status})`);
+                return;
+            }
+
+            const d = await res.json();
+
+            let rawCode = d.paymentModality != null ? d.paymentModality.toString() : "";
+            if (rawCode.length === 1) rawCode = "0" + rawCode;
+
+            const readableText = ModalityMap[rawCode] || "Unknown (" + rawCode + ")";
+
+            document.getElementById('roPayee').value = d.payeeIdentity || "";
+            document.getElementById('roModality').value = readableText;
+            document.getElementById('roAddress').value = d.financialAddress || "";
+            document.getElementById('roBbic').value = d.bankingInstitutionCode || "";
+
+            document.getElementById('payeeIdentity').value = d.payeeIdentity || "";
+            document.getElementById('paymentModality').value = rawCode;
+            document.getElementById('financialAddress').value = d.financialAddress || "";
+            document.getElementById('bbic').value = d.bankingInstitutionCode || "";
+
+            document.getElementById('updateForm').style.display = "block";
+            window.scrollTo({ top: document.getElementById('updateForm').offsetTop, behavior: 'smooth' });
+
+        } catch (err) {
+            console.error(err);
+            alert("Network error: Could not connect to the API Gateway.");
+        }
+    }
+
+    async function updateBeneficiary() {
+        const btn = document.getElementById('updateBtn');
+        
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        const payload = {
+            requestID: generateRequestId(),
+            beneficiaries: [
+                {
+                    payeeIdentity: document.getElementById('payeeIdentity').value,
+                    paymentModality: document.getElementById('paymentModality').value,
+                    financialAddress: document.getElementById('financialAddress').value.trim(),
+                    bankingInstitutionCode: document.getElementById('bbic').value.trim()
+                }
+            ]
+        };
+
+        try {
+            const res = await fetch(`${apiUrl.value}/beneficiary`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CallbackURL": callbackUrl.value,
+                    "X-Registering-Institution-ID": institutionId.value
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Success: Beneficiary update request sent.");
+                document.getElementById('updateForm').style.display = "none";
+                document.getElementById('searchPayee').value = "";
+            } else {
+                const errorMsg = await res.text();
+                alert("Update Failed: " + (errorMsg || "Unknown Server Error"));
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error: Request could not be completed.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Update Beneficiary';
+        }
+    }
+</script>
+
+</body>
+</html>

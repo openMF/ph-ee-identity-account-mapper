@@ -155,7 +155,7 @@ pre {
 <div class="container">
     <div class="header">
         <h1>ID Account Mapper</h1>
-        <p>Beneficiary Registration (POC)</p>
+        <p>Beneficiary Registration</p>
     </div>
 
     <div class="content">
@@ -176,10 +176,7 @@ pre {
                     <label>Institution Programme ID <span class="required">*</span></label>
                     <input id="registeringInstitutionId" value="INST12345678">
                 </div>
-                <div>
-                    <label>Source BBID <span class="required">*</span></label>
-                    <input id="sourceBBID" value="TEST_SOURCE">
-                </div>
+                
             </div>
         </div>
 
@@ -230,10 +227,11 @@ function addBeneficiary() {
                 <label>Payment Modality</label>
                 <select class="modality">
                     <option value="">-- Select --</option>
-                    <option value="00">Bank</option>
-                    <option value="01">Mobile Money</option>
-                    <option value="02">Voucher</option>
+                    <option value="00">Bank (Account ID)</option>
+                    <option value="01">Mobile Money (MSISDN)</option>
+                    <option value="02">Virtual Address</option>
                     <option value="03">Wallet</option>
+                    <option value="04">Voucher</option>
                 </select>
             </div>
             <div>
@@ -276,7 +274,7 @@ function validate() {
             e.classList.remove('show');
         }
     });
-    ['apiUrl','callbackUrl','registeringInstitutionId','sourceBBID'].forEach(id=>{
+    ['apiUrl','callbackUrl','registeringInstitutionId'].forEach(id=>{
         if(!document.getElementById(id).value.trim()) ok=false;
     });
     return ok;
@@ -290,7 +288,6 @@ async function submitRegistration() {
 
     const payload = {
         requestID: generateRequestId(),
-        sourceBBID: sourceBBID.value.trim(),
         beneficiaries: [...document.querySelectorAll('.form-section')].map(s => {
             const r = { payeeIdentity: s.querySelector('.payee').value.trim() };
             if (s.querySelector('.modality').value) r.paymentModality = s.querySelector('.modality').value;
