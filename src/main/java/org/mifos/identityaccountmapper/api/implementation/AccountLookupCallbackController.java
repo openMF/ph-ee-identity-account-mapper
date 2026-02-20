@@ -81,15 +81,27 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
         Map<String, Object> variables = new HashMap<>();
         String error = null;
         String transactionId = null;
-        log.info("TDDEBUG> Inside batch account lookup CALLBACK controller");
-        // String response = exchange.getIn().getBody(String.class);
+        log.info("=== BATCH ACCOUNT LOOKUP CALLBACK DEBUG ===");
+        log.info("Request body length: {} chars", requestBody != null ? requestBody.length() : 0);
+        log.info("Request body: {}", requestBody);
         BatchAccountLookupResponseDTO batchAccountLookupResponseDTO = null;
         try {
             batchAccountLookupResponseDTO = objectMapper.readValue(requestBody, BatchAccountLookupResponseDTO.class);
+            log.info("Parsed response - Request ID: {}", batchAccountLookupResponseDTO.getRequestID());
+            log.info("Number of beneficiaries in response: {}",
+                    batchAccountLookupResponseDTO.getBeneficiaryDTOList() != null
+                            ? batchAccountLookupResponseDTO.getBeneficiaryDTOList().size()
+                            : 0);
+            if (batchAccountLookupResponseDTO.getBeneficiaryDTOList() != null
+                    && !batchAccountLookupResponseDTO.getBeneficiaryDTOList().isEmpty()) {
+                log.info("First beneficiary in response: {}", batchAccountLookupResponseDTO.getBeneficiaryDTOList().get(0));
+            }
             variables.put("batchAccountLookupCallback", requestBody);
             transactionId = batchAccountLookupResponseDTO.getRequestID();
             variables.put("cachedTransactionId", transactionId);
+            log.info("Sending to Zeebe with correlation key: {}", transactionId);
         } catch (Exception e) {
+            log.error("ERROR parsing batch account lookup response", e);
             logger.error(e.getMessage());
             variables.put(PARTY_LOOKUP_FAILED, true);
             error = objectMapper.readValue(requestBody, String.class);
@@ -99,6 +111,9 @@ public class AccountLookupCallbackController implements AccountLookupCallback {
 
             zeebeClient.newPublishMessageCommand().messageName(BATCH_ACCOUNT_LOOKUP_RESPONSE).correlationKey(transactionId)
                     .timeToLive(Duration.ofMillis(50000)).variables(variables).send();
+            log.info("Message sent to Zeebe successfully");
+        } else {
+            log.warn("ZeebeClient is null, cannot send message!");
         }
         return ResponseEntity.status(HttpStatus.OK).body("Accepted");
     }

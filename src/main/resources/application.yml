@@ -48,9 +48,9 @@ async:
 #   endpoint:
 #     account-status: "/ams/accounts/identifierType/identifierId/status"
 
-# gazelle gsma_connector config internal to cluster 
+# gazelle gsma_connector config internal to cluster
 gsma_connector:
-  contactpoint: "http://ph-ee-connector-ams-mifos" 
+  contactpoint: "http://ph-ee-connector-ams-mifos"
   endpoint:
     account-status: "/ams/accounts/identifierType/identifierId/status"
 

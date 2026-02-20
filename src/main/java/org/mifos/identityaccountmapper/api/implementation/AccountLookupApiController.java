@@ -30,8 +30,8 @@ public class AccountLookupApiController implements AccountLookupApi {
             String registeringInstitutionId) {
         log.info("TDDEBUG> Inside account lookup API controller");
         try {
-            log.info("TDDEBUG> Calling account lookup service from API controller callbackURL: " + callbackURL + ", payeeIdentity: " + payeeIdentity
-                    + ", paymentModality: " + paymentModality + ", requestId: " + requestId + ", registeringInstitutionId: "
+            log.info("TDDEBUG> Calling account lookup service from API controller callbackURL: " + callbackURL + ", payeeIdentity: "
+                    + payeeIdentity + ", paymentModality: " + paymentModality + ", requestId: " + requestId + ", registeringInstitutionId: "
                     + registeringInstitutionId);
             accountLookupService.accountLookup(callbackURL, payeeIdentity, paymentModality, requestId, registeringInstitutionId);
         } catch (Exception e) {

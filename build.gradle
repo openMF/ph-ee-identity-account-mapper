@@ -19,8 +19,8 @@ repositories {
     mavenCentral()
     maven { url "https://repo.spring.io/libs-release" }
     maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
-    maven { url "https://mifos.jfrog.io/artifactory/phee-gradle-local"  } 
-    maven { url "https://mifos.jfrog.io/artifactory/mifosx-gradle-local" } 
+    maven { url "https://mifos.jfrog.io/artifactory/phee-gradle-local"  }
+    maven { url "https://mifos.jfrog.io/artifactory/mifosx-gradle-local" }
 }
 ext {
     zeebClientVersion = '8.1.23'

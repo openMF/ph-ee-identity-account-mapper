@@ -35,7 +35,10 @@ public class RegisterBeneficiaryApiController implements RegisterBeneficiaryApi 
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body((T) phErrorDTO);
             }
         } catch (Exception e) {
-            log.error("Internal Server Error in registerBeneficiary for requestID: {}", requestBody.getRequestID(), e); // <-- ADD THIS LINE
+            log.error("Internal Server Error in registerBeneficiary for requestID: {}", requestBody.getRequestID(), e); // <--
+                                                                                                                        // ADD
+                                                                                                                        // THIS
+                                                                                                                        // LINE
             ResponseDTO responseDTO = new ResponseDTO(FAILED_RESPONSE_CODE.getValue(), FAILED_RESPONSE_MESSAGE.getValue(),
                     requestBody.getRequestID());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body((T) responseDTO);
