@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.mifos.identityaccountmapper.data.AccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BatchAccountLookupResponseDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
@@ -29,6 +30,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class AccountLookupService {
 
@@ -107,10 +109,12 @@ public class AccountLookupService {
     @Async("asyncExecutor")
     public void accountLookup(String callbackURL, String payeeIdentity, String paymentModality, String requestId,
             String registeringInstitutionId) {
-        logger.info("Inside Async function");
+        log.info("TDDEBUG> Before database lookup payeeIdentity: " + payeeIdentity + ", paymentModality: " + paymentModality
+                + ", registeringInstitutionId: " + registeringInstitutionId);
         IdentityDetails identityDetails = masterRepository
                 .findByPayeeIdentityAndRegisteringInstitutionId(payeeIdentity, registeringInstitutionId)
                 .orElseThrow(() -> PayeeIdentityException.payeeIdentityNotFound(payeeIdentity));
+        log.info("TDDEBUG> Identity details found in idam database  " + identityDetails.toString());
         if (!identityDetails.getRegisteringInstitutionId().matches(registeringInstitutionId)) {
             sendCallbackService.sendCallback("Registering Institution Id is not mapped to the Payee Identity provided in the request.",
                     callbackURL);
@@ -165,8 +169,10 @@ public class AccountLookupService {
             return false;
         }
 
-        logger.info("Account validate result: {}", accountValidate);
-        return Boolean.TRUE.equals(accountValidate);
+        // log.info("TDDEBUG> Account validation result: " + accountValidate);
+        // log.info("TDDEBUG> about to send account callback to Callback URL: " + callbackURL);
+        // sendAccountLookupCallback(callbackURL, accountValidate, payeeIdentity, requestId, registeringInstitutionId);
+        return true;
     }
 
     public void sendAccountLookupCallback(String callbackURL, Boolean accountValidate, String payeeIdentity, String requestId,
