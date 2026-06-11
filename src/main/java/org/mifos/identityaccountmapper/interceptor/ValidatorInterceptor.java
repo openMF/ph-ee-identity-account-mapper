@@ -3,9 +3,9 @@ package org.mifos.identityaccountmapper.interceptor;
 import static org.mifos.connector.common.exception.PaymentHubError.ExtValidationError;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.connector.common.exception.PaymentHubErrorCategory;

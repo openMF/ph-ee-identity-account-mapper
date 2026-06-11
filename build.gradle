@@ -1,9 +1,9 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.5.5'
-    id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.6'
     id 'idea'
-    id "org.springdoc.openapi-gradle-plugin" version "1.6.0"
+    id "org.springdoc.openapi-gradle-plugin" version "1.9.0"
     id 'eclipse'
     id 'checkstyle'
     id 'com.diffplug.spotless' version '6.19.0'
@@ -12,7 +12,8 @@ plugins {
 
 group = 'org.mifos'
 version = '2.0.0.mifos-SNAPSHOT'
-sourceCompatibility = '17'
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
     mavenLocal()  // Add this line
@@ -21,40 +22,63 @@ repositories {
     maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
     maven { url "https://mifos.jfrog.io/artifactory/phee-gradle-local"  }
     maven { url "https://mifos.jfrog.io/artifactory/mifosx-gradle-local" }
-}
-ext {
-    zeebClientVersion = '8.1.23'
+
+    // Mifos Platform BOM + ph-ee-connector-common 2.0.0-SNAPSHOT are consumed
+    // from the local JFrog Artifactory sandbox (Docker Compose in
+    // proposal/local-jfrog/). Swap this host for the production Mifos JFrog
+    // when the official BOM is ready.
+    maven {
+        name = 'LocalJFrog'
+        url = uri('http://localhost:8081/artifactory/mifos-platform-snapshot')
+        allowInsecureProtocol = true
+        credentials {
+            username = findProperty('localJfrog.user') ?: System.getenv('LOCAL_JFROG_USER')
+            password = findProperty('localJfrog.key') ?: System.getenv('LOCAL_JFROG_KEY')
+        }
+    }
 }
 
-ext {
-    springBootVersion = '2.6.2'
+configurations.all {
+    // camel-xml-jaxb (via connector-common) pulls the com.sun.xml.bind
+    // re-publication of the JAXB runtime; the same classes already arrive via
+    // the canonical org.glassfish.jaxb coordinates (EclipseLink/JAXB path),
+    // and bootJar rejects the duplicate jaxb-core jar entry.
+    exclude group: 'com.sun.xml.bind', module: 'jaxb-core'
+    exclude group: 'com.sun.xml.bind', module: 'jaxb-impl'
 }
+
 dependencies {
+    // Mifos Platform BOM pins Spring Boot 3.4, EclipseLink 4, Zeebe 8, Jakarta
+    // EE 10 and every other shared library version. Do NOT hardcode managed
+    // versions. This is a deployable application, so use enforcedPlatform().
+    implementation enforcedPlatform('org.mifos.platform:mifos-platform-bom:1.0.0-SNAPSHOT')
+
     implementation 'org.springframework.boot:spring-boot-starter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation("org.springframework.boot:spring-boot-starter-web:2.5.5")
-    implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:2.5.2")
-    implementation("org.flywaydb:flyway-core:7.0.4")
-    implementation 'org.mifos:ph-ee-connector-common:1.8.1-gazelle'
-    // implementation 'org.mifos:ph-ee-connector-common:1.8.1-SNAPSHOT'
-    implementation 'org.eclipse.persistence:org.eclipse.persistence.jpa:2.7.6'
-    implementation 'javax.annotation:javax.annotation-api:1.3.2'
-    implementation 'mysql:mysql-connector-java'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.flywaydb:flyway-core'
+    // Flyway 10 moved MySQL support out of flyway-core
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.mifos:ph-ee-connector-common:2.0.0-SNAPSHOT'
+    implementation 'org.eclipse.persistence:org.eclipse.persistence.jpa'
+    // mysql:mysql-connector-java was relocated to com.mysql:mysql-connector-j
+    implementation 'com.mysql:mysql-connector-j'
     implementation 'com.zaxxer:HikariCP'
-    implementation('io.rest-assured:rest-assured:4.4.0')
-    implementation "org.springdoc:springdoc-openapi-ui:1.6.11"
-    implementation 'org.projectlombok:lombok:1.18.20'
-    annotationProcessor 'org.projectlombok:lombok:1.18.20'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
-    implementation 'org.springframework.boot:spring-boot-starter-cache:2.7.2'
-    implementation 'javax.cache:cache-api:1.1.1'
+    implementation 'io.rest-assured:rest-assured'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    // Ehcache 2 + JCache replaced by Caffeine (see CacheConfig): Spring 6
+    // removed EhCacheCacheManager and net.sf.ehcache is pre-Jakarta.
+    implementation 'com.github.ben-manes.caffeine:caffeine'
     // implementation 'org.mifos:ph-ee-id-account-validator-impl:0.0.6-SNAPSHOT'
     implementation 'org.mifos:ph-ee-id-account-validator-impl:0.0.1-gazelle'
-    implementation("io.camunda:zeebe-client-java:$zeebClientVersion")
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.9'
-    implementation("io.camunda:zeebe-client-java:$zeebClientVersion")
-    implementation 'net.sf.ehcache:ehcache:2.10.6'
+    implementation 'io.camunda:zeebe-client-java'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
 tasks.named('test') {

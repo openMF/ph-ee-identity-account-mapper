@@ -3,8 +3,8 @@ package org.mifos.identityaccountmapper.service;
 import static org.mifos.identityaccountmapper.util.AccountMapperEnum.WORKER_ACCOUNT_LOOKUP_CALLBACK;
 
 import io.camunda.zeebe.client.ZeebeClient;
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

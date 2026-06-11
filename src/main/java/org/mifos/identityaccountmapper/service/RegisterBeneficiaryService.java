@@ -2,11 +2,11 @@ package org.mifos.identityaccountmapper.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import javax.transaction.Transactional;
 import org.mifos.connector.common.channel.dto.PhErrorDTO;
 import org.mifos.identityaccountmapper.data.BeneficiaryDTO;
 import org.mifos.identityaccountmapper.data.CallbackRequestDTO;
