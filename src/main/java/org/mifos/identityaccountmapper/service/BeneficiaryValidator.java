@@ -65,7 +65,7 @@ public class BeneficiaryValidator {
                 && (paymentModality.equals(ACCOUNT_ID.getValue()) || paymentModality.equals(MSISDN.getValue())
                         || paymentModality.equals(WALLET_ID.getValue()))
                 && ((bankingInstitutionCode == null || bankingInstitutionCode.isEmpty())
-                        || ((bankingInstitutionCode != null && bankingInstitutionCode.length() > 11))))) {
+                        || (bankingInstitutionCode != null && bankingInstitutionCode.length() > 11)))) {
             return false;
         }
         return true;

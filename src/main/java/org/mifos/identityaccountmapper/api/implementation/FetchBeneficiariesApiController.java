@@ -1,6 +1,7 @@
 package org.mifos.identityaccountmapper.api.implementation;
 
 import java.util.concurrent.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mifos.identityaccountmapper.api.definition.FetchBeneficiariesApi;
 import org.mifos.identityaccountmapper.data.FetchBeneficiariesResponseDTO;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
 
@@ -20,7 +22,9 @@ public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
     @Override
     public ResponseEntity<FetchBeneficiariesResponseDTO> fetchBeneficiary(String payeeIdentity, String registeringInstitutionId)
             throws ExecutionException, InterruptedException {
+        log.info("TDDEBUG> Inside fetch beneficiary  controller");
         if (StringUtils.isBlank(registeringInstitutionId)) {
+            log.info("TDDEBUG> regeristeringInstitutionId is blank");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         FetchBeneficiariesResponseDTO fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchBeneficiary(payeeIdentity,
@@ -31,7 +35,9 @@ public class FetchBeneficiariesApiController implements FetchBeneficiariesApi {
     @Override
     public ResponseEntity<Page<FetchBeneficiariesResponseDTO>> fetchAllBeneficiary(String registeringInstitutionId, Integer page,
             Integer pageSize) throws ExecutionException, InterruptedException {
+        log.info("TDDEBUG> Inside fetch all beneficiaries controller");
         if (StringUtils.isBlank(registeringInstitutionId)) {
+            log.info("TDDEBUG> regeristeringInstitutionId is blank");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         Page<FetchBeneficiariesResponseDTO> fetchBeneficiariesResponseDTO = fetchBeneficiariesService.fetchAllBeneficiaries(page, pageSize,
