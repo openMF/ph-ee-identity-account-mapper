@@ -48,14 +48,17 @@ public enum IdentityMapperValidatorsEnum implements ValidationCodeType {
         this.message = message;
     }
 
+    @Override
     public String getCode() {
         return this.code;
     }
 
+    @Override
     public String getCategory() {
         return this.category;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }
